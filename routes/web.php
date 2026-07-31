@@ -1,9 +1,17 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DeveloperAccountController;
 use App\Http\Controllers\ImageGenerationController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GabungController;
+use App\Http\Controllers\EditController;
+use App\Http\Controllers\ArtistController;
+use App\Http\Controllers\CarouselController;
 
 /*
 |--------------------------------------------------------------------------
@@ -12,6 +20,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
+    // Jika sudah login, arahkan ke dashboard (/gabung)
+    if (Auth::check()) {
+        return redirect('/gabung');
+    }
+    // Jika belum login, arahkan ke form login
     return redirect('/login');
 });
 
@@ -53,29 +66,66 @@ Route::post('/logout', [AuthController::class, 'logout'])
 */
 
 Route::middleware('auth')->group(function () {
+
+    // --- Views Dasar ---
     Route::view('/gabung', 'gabung')->name('gabung');
     Route::view('/edit', 'edit')->name('edit');
-    Route::view('/artist', 'artist')->name('artist');
     Route::view('/carousel', 'carousel')->name('carousel');
 
+    // --- Redirects ---
     Route::redirect('/korosel', '/carousel');
     Route::redirect('/Carousel', '/carousel');
 
+    // --- Gemini Test & General Image Utils ---
     Route::get('/gemini-test', [ImageGenerationController::class, 'geminiTest'])
         ->name('gemini.test');
+    Route::get('/download-image', [ImageGenerationController::class, 'downloadImage'])
+        ->name('download.image');
 
-    Route::post('/gabung/generate', [ImageGenerationController::class, 'generateGabung'])
-        ->name('gabung.generate');
-
-    Route::post('/edit/generate', [ImageGenerationController::class, 'generateEdit'])
-        ->name('edit.generate');
-
-    Route::post('/artist/generate', [ImageGenerationController::class, 'generateArtist'])
-        ->name('artist.generate');
-
-    Route::post('/carousel/render', [ImageGenerationController::class, 'renderCarousel'])
+    // --- Carousel ---
+    Route::post('/carousel/process', [CarouselController::class, 'processStoryboard'])
+        ->name('carousel.process');
+    Route::get('/carousel/process-status/{id}', [CarouselController::class, 'checkProcessStatus'])
+        ->name('carousel.process-status');
+    Route::post('/carousel/render', [CarouselController::class, 'generate'])
         ->name('carousel.render');
+    Route::get('/carousel/status/{ids}', [CarouselController::class, 'checkStatus'])
+        ->name('carousel.status');
 
-    Route::post('/korosel/render', [ImageGenerationController::class, 'renderKorosel'])
-        ->name('korosel.render');
+    // --- Gabung (Async Queue + Polling) ---
+    Route::post('/gabung/generate', [GabungController::class, 'generate']);
+    Route::get('/gabung/status/{ids}', [GabungController::class, 'checkStatus']);
+
+    // --- Edit (Async Queue + Polling) ---
+    Route::post('/edit/generate', [EditController::class, 'generate'])->name('edit.generate');
+    Route::get('/edit/status/{ids}', [EditController::class, 'checkStatus'])->name('edit.status');
+
+    // --- Product Artist ---
+    Route::get('/artist', [ArtistController::class, 'index'])
+        ->name('artist.index');
+    Route::post('/artist/generate', [ArtistController::class, 'generate'])->name('artist.generate');
+
+    Route::get('/artist/status/{prompt_id}', [ArtistController::class, 'checkStatus'])->name('artist.status');
+
+    // --- Webhooks ---
+    Route::post('/comfy-webhook', function (Request $request) {
+        // Mencatat apa pun yang dikirim Comfy ke file log
+        Log::info('Data masuk dari Comfy:', $request->all());
+
+        if ($request->allFiles()) {
+            Log::info('File yang dikirim:', $request->allFiles());
+        }
+
+        return response()->json(['message' => 'Berhasil ditangkap']);
+    })->name('comfy.webhook');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Fallback Route (404 Not Found)
+|--------------------------------------------------------------------------
+*/
+
+Route::fallback(function () {
+    return response()->view('errors.404', [], 404);
 });

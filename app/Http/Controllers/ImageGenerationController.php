@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\AiNarayaGeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class ImageGenerationController extends Controller
 {
@@ -301,4 +302,68 @@ class ImageGenerationController extends Controller
 
         return response()->json($payload, 500);
     }
+
+    private function createPaddedCanvas($imageFile, $targetWidth, $targetHeight)
+    {
+        $sourcePath = $imageFile->getRealPath();
+        $mime = $imageFile->getMimeType();
+
+        // 1. Buka file gambar asli berdasarkan formatnya
+        if ($mime == 'image/jpeg') {
+            $src = imagecreatefromjpeg($sourcePath);
+        } elseif ($mime == 'image/png') {
+            $src = imagecreatefrompng($sourcePath);
+        } elseif ($mime == 'image/webp') {
+            $src = imagecreatefromwebp($sourcePath);
+        } else {
+            return $sourcePath; // Fallback jika format tidak dikenali
+        }
+
+        $srcW = imagesx($src);
+        $srcH = imagesy($src);
+
+        // 2. Hitung skala agar gambar masuk ke dalam kanvas (Tanpa crop & gepeng)
+        $scale = min($targetWidth / $srcW, $targetHeight / $srcH);
+        $newW = (int) ($srcW * $scale);
+        $newH = (int) ($srcH * $scale);
+
+        // 3. Buat kanvas kosong dengan ukuran target SDXL
+        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+
+        // 4. Warnai kanvas abu-abu netral (Membantu AI ComfyUI mengisi ruang kosong)
+        $bgColor = imagecolorallocate($canvas, 127, 127, 127);
+        imagefill($canvas, 0, 0, $bgColor);
+
+        // 5. Letakkan gambar yang sudah di-resize ke tepat di tengah kanvas
+        $dstX = (int) (($targetWidth - $newW) / 2);
+        $dstY = (int) (($targetHeight - $newH) / 2);
+        imagecopyresampled($canvas, $src, $dstX, $dstY, 0, 0, $newW, $newH, $srcW, $srcH);
+
+        // 6. Simpan kanvas ke folder temporary server
+        $tempPath = sys_get_temp_dir() . '/' . uniqid('ai_canvas_') . '.jpg';
+        imagejpeg($canvas, $tempPath, 100);
+
+        // Bersihkan memori RAM
+        imagedestroy($src);
+        imagedestroy($canvas);
+
+        return $tempPath;
+    }
+
+    public function downloadImage(Request $request)
+    {
+        $imageUrl = $request->query('url');
+        if (!$imageUrl)
+            return abort(404);
+
+        $imageContent = file_get_contents($imageUrl);
+
+        // Pastikan Content-Disposition diatur ke attachment
+        return response($imageContent, 200, [
+            'Content-Type' => 'image/jpeg',
+            'Content-Disposition' => 'attachment; filename="hasil-edit-ai.jpg"',
+        ]);
+    }
+
+
 }

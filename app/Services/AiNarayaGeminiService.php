@@ -14,7 +14,7 @@ class AiNarayaGeminiService
     public function generateText(string $prompt, ?string $model = null): array
     {
         $model = $model ?: $this->textModel();
-        $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent";
+        $endpoint = "https://generativelanguage.googleapis.com/v1/models/{$model}:generateContent";
 
         $response = Http::timeout(60)
             ->retry(2, 1000)
@@ -32,7 +32,7 @@ class AiNarayaGeminiService
 
         $data = $response->json() ?? [];
 
-        if (! $response->successful()) {
+        if (!$response->successful()) {
             Log::error('GEMINI TEXT API ERROR', [
                 'status' => $response->status(),
                 'model' => $model,
@@ -55,7 +55,7 @@ class AiNarayaGeminiService
             $parts = data_get($candidate, 'content.parts', []);
 
             foreach ($parts as $part) {
-                if (! empty($part['text'])) {
+                if (!empty($part['text'])) {
                     $texts[] = $part['text'];
                 }
             }
@@ -87,7 +87,7 @@ class AiNarayaGeminiService
             }
         }
 
-        if (! count($results)) {
+        if (!count($results)) {
             throw new Exception('Gemini berhasil merespons, tetapi tidak mengirim gambar. Coba prompt lebih jelas atau pakai model image lain seperti gemini-3.1-flash-image.');
         }
 
@@ -118,47 +118,58 @@ class AiNarayaGeminiService
     private function generateImage(array $parts, string $ratio = '1:1', ?string $model = null): array
     {
         $model = $model ?: $this->imageModel();
-        $ratio = $this->normalizeRatio($ratio);
-        $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent";
+        $endpoint = "https://generativelanguage.googleapis.com/v1/models/{$model}:generateContent";
 
-        $response = Http::timeout(180)
-            ->withHeaders($this->requestHeaders())
-            ->post($endpoint, [
-                'contents' => [
-                    [
-                        'role' => 'user',
-                        'parts' => $parts,
+        $parts[] = [
+            'text' => "PENTING: Gunakan rasio aspek {$ratio} untuk gambar yang dihasilkan."
+        ];
+
+        try {
+            $response = Http::timeout(180)
+                ->retry(4, function (int $attempt) {
+                    // Exponential backoff: 3s, 6s, 12s, 24s
+                    return 3000 * (2 ** ($attempt - 1));
+                }, function (Exception $exception) {
+                    return $exception instanceof \Illuminate\Http\Client\RequestException
+                        && $exception->response->status() === 429;
+                }, throw: false)
+                ->withHeaders($this->requestHeaders())
+                ->post($endpoint, [
+                    'contents' => [
+                        [
+                            'role' => 'user',
+                            'parts' => $parts,
+                        ],
                     ],
-                ],
-                'generationConfig' => [
-                    'responseModalities' => ['TEXT', 'IMAGE'],
-                    'imageConfig' => [
-                        'aspectRatio' => $ratio,
-                    ],
-                ],
+                ]);
+        } catch (\Illuminate\Http\Client\ConnectionException $exception) {
+            Log::error('GEMINI IMAGE API CONNECTION ERROR', [
+                'model' => $model,
+                'message' => $exception->getMessage(),
             ]);
+
+            throw new Exception('Tidak bisa terhubung ke server Gemini. Cek koneksi internet dan coba lagi.');
+        }
 
         $data = $response->json() ?? [];
 
-        if (! $response->successful()) {
+        if (!$response->successful()) {
             Log::error('GEMINI IMAGE API ERROR', [
                 'status' => $response->status(),
                 'model' => $model,
-                'ratio' => $ratio,
                 'response' => $data,
             ]);
 
             if ($response->status() === 429) {
-                throw new Exception('Kuota Gemini image untuk project ini habis atau belum aktif. Aktifkan billing, periksa quota Generative Language API di Google Cloud, lalu coba lagi.');
+                throw new Exception('Kuota API Gemini untuk generate gambar sudah habis. Cek kuota/billing di Google AI Studio, atau tunggu kuota harian reset sebelum mencoba lagi.');
             }
 
-            $message = data_get($data, 'error.message', 'Gemini image API gagal tanpa pesan detail.');
+            $message = data_get($data, 'error.message', 'Gemini image API gagal.');
             throw new Exception("Gemini image gagal. Status {$response->status()}: {$message}");
         }
 
         return $data;
     }
-
     private function saveImages(array $responseData, string $folder, string $titlePrefix = 'AI-Naraya'): array
     {
         $savedImages = [];
@@ -170,7 +181,7 @@ class AiNarayaGeminiService
             foreach ($parts as $part) {
                 $inlineData = $part['inlineData'] ?? $part['inline_data'] ?? null;
 
-                if (! $inlineData || empty($inlineData['data'])) {
+                if (!$inlineData || empty($inlineData['data'])) {
                     continue;
                 }
 
@@ -207,7 +218,7 @@ class AiNarayaGeminiService
     {
         $apiKey = env('GEMINI_API_KEY');
 
-        if (! $apiKey) {
+        if (!$apiKey) {
             throw new Exception('GEMINI_API_KEY belum diisi di file .env.');
         }
 
@@ -216,11 +227,11 @@ class AiNarayaGeminiService
 
     private function imageModel(): string
     {
-        return env('GEMINI_IMAGE_MODEL', 'gemini-2.5-flash-image');
+        return env('GEMINI_IMAGE_MODEL', 'imagen-3.0-generate-002');
     }
 
     private function textModel(): string
     {
-        return env('GEMINI_TEXT_MODEL', 'gemini-2.5-flash');
+        return env('GEMINI_TEXT_MODEL', 'gemini-2.0-flash');
     }
 }
