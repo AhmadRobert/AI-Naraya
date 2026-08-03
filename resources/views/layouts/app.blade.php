@@ -226,12 +226,33 @@
                 'description' => 'Campaign product AI',
             ],
             [
-    'label' => 'Carousel',
-    'href' => url('/carousel'),
-    'pattern' => 'carousel*',
-    'icon' => 'view_carousel',
-    'description' => 'Storyboard to render',
-],
+                'label' => 'Buat Caption',
+                'href' => url('/caption'),
+                'pattern' => 'caption*',
+                'icon' => 'edit_note',
+                'description' => 'Generate caption & hashtag',
+            ],
+            [
+                'label' => 'Storyboard Video',
+                'href' => url('/storyboard'),
+                'pattern' => 'storyboard*',
+                'icon' => 'movie_creation',
+                'description' => 'Generate storyboard iklan',
+            ],
+            [
+                'label' => 'Carousel',
+                'href' => url('/carousel'),
+                'pattern' => 'carousel*',
+                'icon' => 'view_carousel',
+                'description' => 'Storyboard to render',
+            ],
+            [
+                'label' => 'Prompt Library',
+                'href' => url('/prompts'),
+                'pattern' => 'prompts*',
+                'icon' => 'library_books',
+                'description' => 'Kumpulan prompt AI',
+            ],
         ];
 
         $authUser = auth()->user();

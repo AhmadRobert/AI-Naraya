@@ -253,6 +253,7 @@
                     <span class="material-symbols-outlined text-[16px]">campaign</span>
                     Preview Campaign
                 </div>
+                <p id="resultsSubtitle" class="text-label-sm text-on-surface-variant">Hasil campaign hanya muncul setelah proses generate berhasil.</p>
             </div>
 
             <div class="flex flex-wrap gap-2">

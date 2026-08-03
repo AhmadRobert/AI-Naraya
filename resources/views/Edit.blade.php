@@ -170,6 +170,7 @@
                     <span class="material-symbols-outlined text-[16px]">image</span>
                     Preview Output
                 </div>
+                <p id="resultSubtitle" class="text-label-sm text-on-surface-variant">Hasil hanya muncul setelah proses edit berhasil.</p>
             </div>
 
             <div class="flex flex-wrap gap-2">

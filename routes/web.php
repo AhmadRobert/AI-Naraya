@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CaptionController;
 use App\Http\Controllers\DeveloperAccountController;
 use App\Http\Controllers\ImageGenerationController;
+use App\Http\Controllers\PromptController;
+use App\Http\Controllers\StoryboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -61,9 +64,6 @@ Route::middleware('auth')->group(function () {
     Route::redirect('/korosel', '/carousel');
     Route::redirect('/Carousel', '/carousel');
 
-    Route::get('/gemini-test', [ImageGenerationController::class, 'geminiTest'])
-        ->name('gemini.test');
-
     Route::post('/gabung/generate', [ImageGenerationController::class, 'generateGabung'])
         ->name('gabung.generate');
 
@@ -76,6 +76,54 @@ Route::middleware('auth')->group(function () {
     Route::post('/carousel/render', [ImageGenerationController::class, 'renderCarousel'])
         ->name('carousel.render');
 
-    Route::post('/korosel/render', [ImageGenerationController::class, 'renderKorosel'])
-        ->name('korosel.render');
+    /*
+    |--------------------------------------------------------------------------
+    | Caption (BARU)
+    |--------------------------------------------------------------------------
+    | Sebelumnya CaptionController & CaptionService sudah dibuat lengkap
+    | tapi belum pernah didaftarkan route-nya, jadi fitur ini tidak bisa
+    | diakses sama sekali dari UI. Ditambahkan supaya sesuai modul Minggu 1
+    | (generate caption) & Minggu 3-4 (form input + output teks).
+    */
+    Route::view('/caption', 'Caption')->name('caption');
+
+    Route::post('/caption/generate', [CaptionController::class, 'generate'])
+        ->name('caption.generate');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Storyboard / Ide Video (BARU)
+    |--------------------------------------------------------------------------
+    | Sama seperti Caption: StoryboardController & StoryboardService sudah
+    | siap, tapi belum ada route + view. Fitur ini yang memenuhi requirement
+    | modul Minggu 4 no.1: "Memilih format output: ... ide video/storyboard".
+    | Output teks storyboard (Scene/Visual/Camera/Mood) di sini bisa lanjut
+    | diexport jadi PDF lalu di-upload ke fitur Carousel (renderCarousel)
+    | untuk dijadikan gambar per-scene.
+    */
+    Route::view('/storyboard', 'Storyboard')->name('storyboard');
+
+    Route::post('/storyboard/generate', [StoryboardController::class, 'generate'])
+        ->name('storyboard.generate');
+
+    Route::get('/prompts', [PromptController::class, 'page'])
+        ->name('prompts.page');
+
+    Route::get('/api/prompts', [PromptController::class, 'index'])
+        ->name('prompts.index');
+
+    Route::post('/api/prompts', [PromptController::class, 'store'])
+        ->name('prompts.store');
+
+    Route::put('/api/prompts/{id}', [PromptController::class, 'update'])
+        ->name('prompts.update');
+
+    Route::delete('/api/prompts/{id}', [PromptController::class, 'destroy'])
+        ->name('prompts.destroy');
+
+    Route::post('/api/prompts/{id}/use', [PromptController::class, 'markUsed'])
+        ->name('prompts.use');
+
+    Route::post('/carousel/analyze', [ImageGenerationController::class, 'analyzeStoryboard'])
+        ->name('carousel.analyze');    
 });
