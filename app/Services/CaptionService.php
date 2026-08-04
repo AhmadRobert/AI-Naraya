@@ -2,13 +2,20 @@
 
 namespace App\Services;
 
+use App\Services\Providers\ComfyTextService;
+
+/**
+ * FIX MAPPING: sebelumnya Caption lewat AIManager (Grok). Sesuai mapping
+ * final, Caption sekarang pakai ComfyUI (ComfyTextService), Grok dipakai
+ * eksklusif untuk Produk Artist/Storyboard/Carousel.
+ */
 class CaptionService
 {
-    protected AIManager $ai;
+    protected ComfyTextService $comfy;
 
-    public function __construct(AIManager $ai)
+    public function __construct(ComfyTextService $comfy)
     {
-        $this->ai = $ai;
+        $this->comfy = $comfy;
     }
 
     public function generate(string $prompt, string $style = 'default', int $length = 100): string
@@ -35,16 +42,16 @@ Output:
 
 ";
 
-        return $this->ai->generateCaption($finalPrompt);
+        return $this->comfy->generate($finalPrompt);
     }
 
     /**
-     * BARU: dipakai controller untuk melaporkan provider yang benar-benar
-     * melayani request TERAKHIR (Grok atau Agnes AI kalau Grok fallback).
-     * Panggil ini SETELAH generate().
+     * Dipakai controller untuk melaporkan provider yang menangani request
+     * Caption. Tidak ada fallback lagi (satu provider per fitur), jadi
+     * selalu 'ComfyUI'.
      */
     public function lastProvider(): string
     {
-        return $this->ai->lastProvider();
+        return 'ComfyUI';
     }
 }

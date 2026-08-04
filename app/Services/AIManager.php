@@ -5,10 +5,13 @@ namespace App\Services;
 use App\Services\Providers\GrokService;
 
 /**
- * BARU: Agnes AI dihapus total dari jalur teks. Grok (xAI) sekarang
- * satu-satunya provider untuk Caption & Storyboard, tidak ada fallback.
- * lastProvider() dipertahankan (selalu 'Grok (xAI)') supaya
- * CaptionController/StoryboardController tidak perlu diubah.
+ * FIX MAPPING: Caption sudah dipindah ke ComfyTextService (lihat
+ * CaptionService.php), jadi method generateCaption() di sini dihapus -
+ * AIManager sekarang murni pembungkus GrokService khusus untuk Storyboard
+ * (satu-satunya fitur teks yang masih pakai Grok).
+ *
+ * Tidak ada fallback provider (Agnes sudah dihapus total sebelumnya) -
+ * satu fitur = satu provider, sesuai mapping akhir project ini.
  */
 class AIManager
 {
@@ -22,11 +25,6 @@ class AIManager
     public function lastProvider(): string
     {
         return 'Grok (xAI)';
-    }
-
-    public function generateCaption(string $prompt): string
-    {
-        return $this->grok->generate($prompt);
     }
 
     public function generateStoryboard(string $prompt): string

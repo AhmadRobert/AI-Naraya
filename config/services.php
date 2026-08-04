@@ -23,42 +23,16 @@ return [
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Grok (xAI) - PROVIDER UTAMA
-    |--------------------------------------------------------------------------
-    |
-    | model        -> teks (Caption & Storyboard), lihat GrokService.
-    |                 Model chat terkini menurut docs.x.ai: grok-4.5.
-    | image_model  -> Gabungkan Foto/Edit Foto/Produk Artist/render scene
-    |                 Carousel, lihat GrokImageService::generate().
-    |                 grok-imagine-image-quality (kualitas tinggi, dipakai
-    |                 di Quick Start resmi) atau grok-imagine-image (lebih
-    |                 cepat/hemat).
-    | file_model   -> BARU: khusus baca PDF storyboard lewat Files API +
-    |                 Responses API, lihat GrokImageService::analyzeScenes().
-    |                 Sebelumnya key ini belum ada di sini sehingga
-    |                 GROK_FILE_MODEL di .env tidak pernah benar-benar
-    |                 kebaca (selalu jatuh ke fallback hardcode di kode).
-    |
-    */
     'grok' => [
         'api_key' => env('GROK_API_KEY'),
         'model' => env('GROK_MODEL', 'grok-4.5'),
-        'image_model' => env('GROK_IMAGE_MODEL', 'grok-imagine-image-quality'),
+        'image_model' => env('GROK_IMAGE_MODEL', 'grok-imagine-image'),
         'file_model' => env('GROK_FILE_MODEL', 'grok-4.3'),
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | ComfyUI Cloud - Gabungkan Foto, Edit Foto
-    |--------------------------------------------------------------------------
-    | BELUM AKTIF - lihat catatan di app/Services/Providers/ComfyImageService.php.
-    | Butuh workflow_api.json yang diekspor dari canvas ComfyUI sebelum
-    | fitur ini benar-benar bisa jalan.
-    */
     'comfy' => [
-        'api_key' => env('COMFY_API_KEY'),
+        'api_key' => env('COMFY_CLOUD_API_KEY'),
+        'url' => env('COMFY_CLOUD_URL', 'https://cloud.comfy.org'),
     ],
 
 ];

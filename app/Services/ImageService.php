@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Services\Providers\ComfyImageService;
 use App\Services\Providers\GrokImageService;
 use Exception;
 use Illuminate\Http\UploadedFile;
@@ -10,35 +9,22 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * BARU: provider sekarang dipetakan PER FITUR (bukan primary/backup lagi):
- * - Gabungkan Foto, Edit Foto -> ComfyUI
- * - Produk Artist, Carousel   -> Grok
+ * FIX MAPPING: sebelumnya kelas ini juga punya generateWithComfy() lewat
+ * ComfyImageService untuk Gabungkan Foto & Edit Foto. Itu SEKARANG DIHAPUS
+ * karena duplikat - Gabungkan Foto & Edit Foto sudah ditangani langsung
+ * oleh GabungController & EditController (implementasi ComfyUI milik
+ * Candra yang sudah terbukti jalan), tanpa lewat ImageService sama sekali.
  *
- * Agnes AI sudah dihapus total, tidak ada fallback antar provider lagi
- * di iterasi ini - kalau provider yang ditugaskan untuk fitur tsb gagal,
- * error asli langsung dilempar ke user (tidak dicoba provider lain).
+ * ImageService sekarang murni untuk fitur yang memakai Grok: Produk Artist
+ * dan Carousel.
  */
 class ImageService
 {
     protected GrokImageService $grok;
 
-    protected ComfyImageService $comfy;
-
-    public function __construct(GrokImageService $grok, ComfyImageService $comfy)
+    public function __construct(GrokImageService $grok)
     {
         $this->grok = $grok;
-        $this->comfy = $comfy;
-    }
-
-    /**
-     * Dipakai: Gabungkan Foto, Edit Foto.
-     */
-    public function generateWithComfy(array $imageFiles, string $prompt, string $ratio, int $count = 1): array
-    {
-        $result = $this->comfy->generate($imageFiles, $prompt, $ratio, $count);
-        $result['provider'] = 'ComfyUI';
-
-        return $result;
     }
 
     /**
@@ -106,6 +92,7 @@ class ImageService
                 foreach ($result['images'] as $image) {
                     $images[] = array_merge($image, [
                         'scene' => $scene['scene'],
+                        'reel' => $scene['reel'] ?? 1,
                         'label' => "Scene {$scene['scene']}",
                     ]);
                 }

@@ -29,11 +29,6 @@ class GrokImageService
 
         $this->model = config('services.grok.image_model', 'grok-imagine-image');
 
-        // FIX: sebelumnya baris ini baca config('services.grok.model')
-        // (model teks biasa untuk Caption/Storyboard), padahal seharusnya
-        // baca config('services.grok.file_model') yang sudah ditambahkan
-        // khusus untuk analisis PDF storyboard di Carousel. Akibatnya
-        // GROK_FILE_MODEL di .env tidak pernah benar-benar dipakai.
         $this->textModel = config('services.grok.file_model', 'grok-4.3');
     }
 
@@ -223,14 +218,6 @@ class GrokImageService
         }
     }
 
-    /**
-     * FIX: sebelumnya kalau xAI balikin error dalam bentuk yang tidak
-     * sesuai dugaan kode ({"error":{"message":...}} atau {"message":...}),
-     * exception yang dilempar cuma teks generik "Grok Image Error." -
-     * user (dan kita) sama sekali tidak tahu penyebab aslinya. Sekarang
-     * body mentah (dipotong 500 karakter) ikut disertakan di pesan error
-     * dan di log, supaya penyebab sebenarnya selalu kelihatan.
-     */
     protected function handleResponse(Response $response, string $context = ''): array
     {
         $json = $response->json();
@@ -252,8 +239,6 @@ class GrokImageService
             ?? (is_string(data_get($json, 'error')) ? $json['error'] : null);
 
         if (! $message) {
-            // Body bukan JSON yang kita duga (bisa HTML 404, bisa shape
-            // error lain) - tampilkan mentah-mentah supaya kelihatan.
             $message = sprintf(
                 'Grok Image Error [%s] - HTTP %d: %s',
                 $context,
@@ -394,6 +379,7 @@ PROMPT;
     protected function fallbackSingleScene(): array
     {
         return [
+            'reel' => 1,
             'scene' => 1,
             'visual' => 'Render sesuai isi storyboard secara keseluruhan.',
             'camera' => 'medium shot',
@@ -424,6 +410,13 @@ PROMPT;
             }
 
             $scenes[] = [
+                // FIX: field 'reel' sebelumnya TIDAK PERNAH dibaca di sini
+                // walau sudah diminta di instruksi prompt AI di atas.
+                // Akibatnya ImageService::generateFromStoryboard() yang
+                // memfilter pakai `$scene['reel'] ?? 1` selalu jatuh ke
+                // default 1, sehingga PDF berisi banyak reel/ide tidak
+                // pernah bisa difilter per reel dengan benar.
+                'reel' => (int) ($item['reel'] ?? 1),
                 'scene' => (int) ($item['scene'] ?? $i),
                 'visual' => (string) ($item['visual'] ?? ''),
                 'camera' => (string) ($item['camera'] ?? ''),

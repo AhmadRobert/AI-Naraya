@@ -18,70 +18,7 @@ class ImageGenerationController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Gabungkan Foto -> ComfyUI
-    |--------------------------------------------------------------------------
-    */
-
-    public function generateGabung(Request $request)
-    {
-        $request->validate([
-            'images' => 'required|array|min:2|max:5',
-            'images.*' => 'required|image',
-            'prompt' => 'nullable|string',
-            'ratio' => 'required|string',
-            'count' => 'sometimes|integer|in:1,2,4,8',
-        ]);
-
-        try {
-
-            $result = $this->imageService->generateWithComfy(
-                $request->file('images'),
-                (string) $request->input('prompt', ''),
-                $request->ratio,
-                (int) $request->input('count', 4)
-            );
-
-            return $this->successResponse($result);
-
-        } catch (Throwable $e) {
-            return $this->errorResponse($e);
-        }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Edit Foto -> ComfyUI
-    |--------------------------------------------------------------------------
-    */
-
-    public function generateEdit(Request $request)
-    {
-        $request->validate([
-            'image' => 'required|image',
-            'prompt' => 'nullable|string',
-            'ratio' => 'required|string',
-            'count' => 'sometimes|integer|in:1,2,4,8',
-        ]);
-
-        try {
-
-            $result = $this->imageService->generateWithComfy(
-                [$request->file('image')],
-                (string) $request->input('prompt', ''),
-                $request->ratio,
-                (int) $request->input('count', 4)
-            );
-
-            return $this->successResponse($result);
-
-        } catch (Throwable $e) {
-            return $this->errorResponse($e);
-        }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Product Artist -> Grok
+    | Produk Artist -> Grok
     |--------------------------------------------------------------------------
     */
 
@@ -172,6 +109,10 @@ class ImageGenerationController extends Controller
                 $item['scene'] = $image['scene'];
             }
 
+            if (isset($image['reel'])) {
+                $item['reel'] = $image['reel'];
+            }
+
             if (isset($image['label'])) {
                 $item['label'] = $image['label'];
             }
@@ -202,5 +143,21 @@ class ImageGenerationController extends Controller
             'message' => $e->getMessage(),
 
         ], 500);
+    }
+
+    public function downloadImage(Request $request)
+    {
+        $imageUrl = $request->query('url');
+
+        if (! $imageUrl) {
+            return abort(404);
+        }
+
+        $imageContent = file_get_contents($imageUrl);
+
+        return response($imageContent, 200, [
+            'Content-Type' => 'image/jpeg',
+            'Content-Disposition' => 'attachment; filename="hasil-edit-ai.jpg"',
+        ]);
     }
 }

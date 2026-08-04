@@ -4,6 +4,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CaptionController;
 use App\Http\Controllers\DeveloperAccountController;
 use App\Http\Controllers\ImageGenerationController;
+use App\Http\Controllers\GabungController;
+use App\Http\Controllers\EditController;
+use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\PromptController;
 use App\Http\Controllers\StoryboardController;
 use Illuminate\Support\Facades\Route;
@@ -24,8 +27,6 @@ Route::view('/beli', 'beli')->name('beli');
 |--------------------------------------------------------------------------
 | Developer Create Account
 |--------------------------------------------------------------------------
-| Buka: http://127.0.0.1:8000/buat-akun
-| Kode developer diambil dari .env: DEV_CREATE_KEY
 */
 
 Route::get('/buat-akun', [DeveloperAccountController::class, 'create'])
@@ -56,34 +57,65 @@ Route::post('/logout', [AuthController::class, 'logout'])
 */
 
 Route::middleware('auth')->group(function () {
+
+    /*
+    |------------------------------------------------------------------
+    | Views
+    |------------------------------------------------------------------
+    */
     Route::view('/gabung', 'gabung')->name('gabung');
     Route::view('/edit', 'edit')->name('edit');
-    Route::view('/artist', 'artist')->name('artist');
+    Route::get('/artist', [ArtistController::class, 'index'])->name('artist');
     Route::view('/carousel', 'carousel')->name('carousel');
 
     Route::redirect('/korosel', '/carousel');
     Route::redirect('/Carousel', '/carousel');
 
-    Route::post('/gabung/generate', [ImageGenerationController::class, 'generateGabung'])
+    /*
+    |------------------------------------------------------------------
+    | Gabungkan Foto -> ComfyUI (implementasi Candra)
+    |------------------------------------------------------------------
+    */
+    Route::post('/gabung/generate', [GabungController::class, 'generate'])
         ->name('gabung.generate');
 
-    Route::post('/edit/generate', [ImageGenerationController::class, 'generateEdit'])
+    Route::get('/gabung/status/{ids}', [GabungController::class, 'checkStatus'])
+        ->name('gabung.status');
+
+    /*
+    |------------------------------------------------------------------
+    | Edit Foto -> ComfyUI (implementasi Candra)
+    |------------------------------------------------------------------
+    */
+    Route::post('/edit/generate', [EditController::class, 'generate'])
         ->name('edit.generate');
 
+    Route::get('/edit/status/{ids}', [EditController::class, 'checkStatus'])
+        ->name('edit.status');
+
+    /*
+    |------------------------------------------------------------------
+    | Produk Artist -> Grok (implementasi Oltha)
+    |------------------------------------------------------------------
+    */
     Route::post('/artist/generate', [ImageGenerationController::class, 'generateArtist'])
         ->name('artist.generate');
 
+    /*
+    |------------------------------------------------------------------
+    | Carousel -> Grok (implementasi Oltha)
+    |------------------------------------------------------------------
+    */
     Route::post('/carousel/render', [ImageGenerationController::class, 'renderCarousel'])
         ->name('carousel.render');
 
+    Route::get('/download-image', [ImageGenerationController::class, 'downloadImage'])
+        ->name('download.image');
+
     /*
-    |--------------------------------------------------------------------------
-    | Caption (BARU)
-    |--------------------------------------------------------------------------
-    | Sebelumnya CaptionController & CaptionService sudah dibuat lengkap
-    | tapi belum pernah didaftarkan route-nya, jadi fitur ini tidak bisa
-    | diakses sama sekali dari UI. Ditambahkan supaya sesuai modul Minggu 1
-    | (generate caption) & Minggu 3-4 (form input + output teks).
+    |------------------------------------------------------------------
+    | Caption -> ComfyUI (implementasi Candra)
+    |------------------------------------------------------------------
     */
     Route::view('/caption', 'Caption')->name('caption');
 
@@ -91,21 +123,20 @@ Route::middleware('auth')->group(function () {
         ->name('caption.generate');
 
     /*
-    |--------------------------------------------------------------------------
-    | Storyboard / Ide Video (BARU)
-    |--------------------------------------------------------------------------
-    | Sama seperti Caption: StoryboardController & StoryboardService sudah
-    | siap, tapi belum ada route + view. Fitur ini yang memenuhi requirement
-    | modul Minggu 4 no.1: "Memilih format output: ... ide video/storyboard".
-    | Output teks storyboard (Scene/Visual/Camera/Mood) di sini bisa lanjut
-    | diexport jadi PDF lalu di-upload ke fitur Carousel (renderCarousel)
-    | untuk dijadikan gambar per-scene.
+    |------------------------------------------------------------------
+    | Storyboard -> Grok (implementasi Oltha)
+    |------------------------------------------------------------------
     */
     Route::view('/storyboard', 'Storyboard')->name('storyboard');
 
     Route::post('/storyboard/generate', [StoryboardController::class, 'generate'])
         ->name('storyboard.generate');
 
+    /*
+    |------------------------------------------------------------------
+    | Prompt Library
+    |------------------------------------------------------------------
+    */
     Route::get('/prompts', [PromptController::class, 'page'])
         ->name('prompts.page');
 
@@ -123,7 +154,4 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/api/prompts/{id}/use', [PromptController::class, 'markUsed'])
         ->name('prompts.use');
-
-    Route::post('/carousel/analyze', [ImageGenerationController::class, 'analyzeStoryboard'])
-        ->name('carousel.analyze');    
 });
