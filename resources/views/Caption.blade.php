@@ -293,6 +293,37 @@ document.addEventListener('DOMContentLoaded', () => {
         promptInput.focus();
     });
 
+    const STATUS_ENDPOINT_BASE = @json(url('/caption/status'));
+
+    async function pollCaptionStatus(promptId) {
+        return new Promise((resolve, reject) => {
+            const check = async () => {
+                try {
+                    const response = await fetch(`${STATUS_ENDPOINT_BASE}/${promptId}`);
+                    const data = await response.json().catch(() => ({}));
+
+                    if (data.status === 'done' && data.caption) {
+                        resolve(data.caption);
+                        return;
+                    }
+
+                    if (data.status === 'failed' || (data.success === false && data.message)) {
+                        reject(new Error(data.message || 'Proses pembuatan caption gagal di ComfyUI.'));
+                        return;
+                    }
+
+                    // Masih diproses, lanjut cek terus terusan tiap 2 detik
+                    setTimeout(check, 2000);
+                } catch (error) {
+                    // Jika ada guncangan jaringan sementara, coba cek lagi 2 detik kemudian
+                    setTimeout(check, 2000);
+                }
+            };
+
+            check();
+        });
+    }
+
     async function requestGenerateCaption() {
         const formData = new FormData();
         formData.append('prompt', promptInput.value.trim());
@@ -310,10 +341,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok || !data.success) {
-            throw new Error(data.message || `Generate gagal (HTTP ${response.status}).`);
+            throw new Error(data.message || `Generate gagal dikirim (HTTP ${response.status}).`);
         }
 
-        return data.caption;
+        // Jika caption langsung tersedia
+        if (data.caption) {
+            return data.caption;
+        }
+
+        // Jika mendapatkan prompt_id, lakukan loop polling ke status endpoint sampai output selesai
+        if (data.prompt_id) {
+            showStatus('Prompt berhasil terkirim. Memeriksa hasil ke ComfyUI secara berkesinambungan...', 'info');
+            return await pollCaptionStatus(data.prompt_id);
+        }
+
+        throw new Error('Hasil caption tidak ditemukan.');
     }
 
     async function handleGenerate() {

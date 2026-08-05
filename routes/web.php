@@ -122,6 +122,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/caption/generate', [CaptionController::class, 'generate'])
         ->name('caption.generate');
 
+    Route::get('/caption/status/{promptId}', [CaptionController::class, 'checkStatus'])
+        ->name('caption.status');
+
     /*
     |------------------------------------------------------------------
     | Storyboard -> Grok (implementasi Oltha)
