@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('no_sidebar', true)
+
 @section('content')
 <div class="max-w-[1440px] mx-auto min-h-[70vh] flex flex-col items-center justify-center px-4 pb-12">
     <div class="relative rounded-3xl border border-outline-variant/70 bg-surface-container-lowest/95 shadow-[0_18px_60px_rgba(0,0,0,0.07)] overflow-hidden backdrop-blur p-12 text-center max-w-2xl w-full">
@@ -19,7 +21,7 @@
                 Sepertinya kamu tersesat. Halaman yang kamu tuju mungkin sudah dihapus, dipindahkan, atau memang tidak pernah ada.
             </p>
 
-            <a href="{{ url('/') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-label-lg hover:brightness-105 active:scale-95 transition-all shadow-md shadow-primary/20">
+            <a href="{{ auth()->check() ? route('gabung') : route('login') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-label-lg hover:brightness-105 active:scale-95 transition-all shadow-md shadow-primary/20">
                 <span class="material-symbols-outlined text-[20px]">home</span>
                 Kembali ke Beranda
             </a>

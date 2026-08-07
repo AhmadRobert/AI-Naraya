@@ -265,6 +265,7 @@
             ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
             ->implode('');
         $initials = $initials ?: 'AI';
+        $hideSidebar = isset($hideSidebar) ? $hideSidebar : View::hasSection('no_sidebar');
     @endphp
 
     <div id="mobileSidebarOverlay" class="fixed inset-0 z-40 hidden bg-black/40 backdrop-blur-sm md:hidden"></div>
@@ -273,15 +274,17 @@
     <header class="fixed inset-x-0 top-0 z-50 h-16 border-b border-outline-variant/50 glass-panel">
         <div class="flex h-full items-center justify-between px-4 md:px-container-padding">
             <div class="flex items-center gap-3">
-                <button
-                    id="openSidebarButton"
-                    type="button"
-                    class="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface-variant shadow-soft transition hover:bg-surface-container-high md:hidden"
-                    aria-label="Buka menu"
-                    aria-expanded="false"
-                >
-                    <span class="material-symbols-outlined">menu</span>
-                </button>
+                @unless ($hideSidebar)
+                    <button
+                        id="openSidebarButton"
+                        type="button"
+                        class="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface-variant shadow-soft transition hover:bg-surface-container-high md:hidden"
+                        aria-label="Buka menu"
+                        aria-expanded="false"
+                    >
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                @endunless
 
                 <a href="{{ url('/gabung') }}" class="group flex items-center gap-3 rounded-2xl pr-3 transition" aria-label="AI-Naraya Home">
                     <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-on-primary shadow-soft transition-transform group-hover:scale-105">
@@ -294,8 +297,8 @@
                 </a>
             </div>
 
-            <div class="hidden items-center gap-3 md:flex">
-                <div class="flex items-center gap-2 rounded-full border border-outline-variant/70 bg-surface-container-lowest px-3 py-2 shadow-soft">
+            <div class="flex items-center gap-3">
+                <div class="hidden items-center gap-2 rounded-full border border-outline-variant/70 bg-surface-container-lowest px-3 py-2 shadow-soft sm:flex">
                     <span class="relative flex h-2.5 w-2.5">
                         <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-container opacity-60"></span>
                         <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary"></span>
@@ -303,100 +306,124 @@
                     <span class="text-label-sm text-on-surface-variant">Studio Ready</span>
                 </div>
 
-                <div class="h-8 w-px bg-outline-variant"></div>
+                @if (auth()->check())
+                    <div class="hidden h-8 w-px bg-outline-variant sm:block"></div>
 
-                <div class="flex items-center gap-3 rounded-full border border-outline-variant/70 bg-surface-container-lowest py-1.5 pl-2 pr-3 shadow-soft">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-container text-xs font-extrabold text-white shadow-soft">
-                        {{ $initials }}
+                    <div class="flex items-center gap-3 rounded-full border border-outline-variant/70 bg-surface-container-lowest py-1.5 pl-2 pr-3 shadow-soft">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-container text-xs font-extrabold text-white shadow-soft">
+                            {{ $initials }}
+                        </div>
+                        <div class="hidden leading-tight lg:block">
+                            <p class="max-w-[140px] truncate text-sm font-extrabold text-on-surface">{{ $displayName }}</p>
+                            <p class="max-w-[140px] truncate text-[11px] font-semibold text-on-surface-variant">{{ $displayEmail }}</p>
+                        </div>
                     </div>
-                    <div class="hidden leading-tight lg:block">
-                        <p class="max-w-[140px] truncate text-sm font-extrabold text-on-surface">{{ $displayName }}</p>
-                        <p class="max-w-[140px] truncate text-[11px] font-semibold text-on-surface-variant">{{ $displayEmail }}</p>
-                    </div>
-                </div>
+
+                    <form method="POST" action="{{ route('logout') }}" class="inline">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="focus-ring inline-flex h-9 items-center gap-1.5 rounded-full border border-error/25 bg-error-container/50 px-3.5 text-xs font-extrabold text-on-error-container shadow-soft transition hover:-translate-y-0.5 hover:bg-error-container active:translate-y-0 active:scale-[0.98]"
+                            title="Logout"
+                        >
+                            <span class="material-symbols-outlined text-[18px]">logout</span>
+                            <span class="hidden sm:inline">Logout</span>
+                        </button>
+                    </form>
+                @else
+                    <a
+                        href="{{ route('login') }}"
+                        class="focus-ring inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-bold text-white shadow-soft transition hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0 active:scale-[0.98]"
+                    >
+                        <span class="material-symbols-outlined text-[18px]">login</span>
+                        Masuk
+                    </a>
+                @endif
             </div>
         </div>
     </header>
 
-    <!-- Sidebar -->
-    <aside
-        id="sidebar"
-        class="fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] w-72 -translate-x-full border-r border-outline-variant/60 bg-surface-container-low/95 p-4 shadow-premium backdrop-blur-xl transition-transform duration-300 md:z-40 md:translate-x-0 md:shadow-none"
-        aria-label="Workspace navigation"
-    >
-        <div class="flex h-full flex-col">
-            <div class="mb-5 rounded-3xl border border-outline-variant/60 bg-surface-container-lowest p-4 shadow-soft">
-                <p class="text-label-sm uppercase tracking-[0.18em] text-on-surface-variant">Workspace</p>
-                <h2 class="mt-1 text-lg font-extrabold text-on-surface">Dashboard Editor</h2>
-                <p class="mt-1 text-sm leading-5 text-on-surface-variant">Pilih tools sesuai kebutuhan generate gambar kamu.</p>
-            </div>
+    @unless ($hideSidebar)
+        <!-- Sidebar -->
+        <aside
+            id="sidebar"
+            class="fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] w-72 -translate-x-full border-r border-outline-variant/60 bg-surface-container-low/95 p-4 shadow-premium backdrop-blur-xl transition-transform duration-300 md:z-40 md:translate-x-0 md:shadow-none"
+            aria-label="Workspace navigation"
+        >
+            <div class="flex h-full flex-col">
+                <div class="mb-5 rounded-3xl border border-outline-variant/60 bg-surface-container-lowest p-4 shadow-soft">
+                    <p class="text-label-sm uppercase tracking-[0.18em] text-on-surface-variant">Workspace</p>
+                    <h2 class="mt-1 text-lg font-extrabold text-on-surface">Dashboard Editor</h2>
+                    <p class="mt-1 text-sm leading-5 text-on-surface-variant">Pilih tools sesuai kebutuhan generate gambar kamu.</p>
+                </div>
 
-            <nav class="flex flex-col gap-2">
-                @foreach ($navigationItems as $item)
-                    @php
-                        $isActive = request()->is($item['pattern']);
-                    @endphp
+                <nav class="flex flex-col gap-2">
+                    @foreach ($navigationItems as $item)
+                        @php
+                            $isActive = request()->is($item['pattern']);
+                        @endphp
 
-                    <a
-                        href="{{ $item['href'] }}"
-                        class="focus-ring group flex items-center gap-3 rounded-2xl px-3 py-3 transition-all duration-200 {{ $isActive ? 'nav-link-active font-bold' : 'nav-link-inactive text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface' }}"
-                        aria-current="{{ $isActive ? 'page' : 'false' }}"
-                    >
-                        <span class="nav-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface-container-lowest text-on-surface-variant shadow-soft transition-all">
-                            <span class="material-symbols-outlined">{{ $item['icon'] }}</span>
-                        </span>
+                        <a
+                            href="{{ $item['href'] }}"
+                            class="focus-ring group flex items-center gap-3 rounded-2xl px-3 py-3 transition-all duration-200 {{ $isActive ? 'nav-link-active font-bold' : 'nav-link-inactive text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface' }}"
+                            aria-current="{{ $isActive ? 'page' : 'false' }}"
+                        >
+                            <span class="nav-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface-container-lowest text-on-surface-variant shadow-soft transition-all">
+                                <span class="material-symbols-outlined">{{ $item['icon'] }}</span>
+                            </span>
 
-                        <span class="min-w-0">
-                            <span class="block truncate text-sm font-bold">{{ $item['label'] }}</span>
-                            <span class="block truncate text-xs font-medium opacity-70">{{ $item['description'] }}</span>
-                        </span>
+                            <span class="min-w-0">
+                                <span class="block truncate text-sm font-bold">{{ $item['label'] }}</span>
+                                <span class="block truncate text-xs font-medium opacity-70">{{ $item['description'] }}</span>
+                            </span>
 
-                        @if ($isActive)
-                            <span class="ml-auto h-2 w-2 rounded-full bg-primary"></span>
+                            @if ($isActive)
+                                <span class="ml-auto h-2 w-2 rounded-full bg-primary"></span>
+                            @endif
+                        </a>
+                    @endforeach
+                </nav>
+
+                <div class="mt-auto pt-5">
+                    <div class="rounded-3xl border border-outline-variant/70 bg-surface-container-lowest p-4 shadow-soft">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-container text-sm font-extrabold text-white shadow-soft">
+                                {{ $initials }}
+                            </div>
+
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-extrabold text-on-surface">{{ $displayName }}</p>
+                                <p class="truncate text-xs font-semibold text-on-surface-variant">{{ $displayEmail }}</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 h-px bg-outline-variant/70"></div>
+
+                        @if (Route::has('logout'))
+                            <form method="POST" action="{{ route('logout') }}" class="mt-4">
+                                @csrf
+
+                                <button
+                                    type="submit"
+                                    class="focus-ring group flex w-full items-center justify-center gap-2 rounded-2xl border border-error/25 bg-error-container/60 px-4 py-3 text-sm font-extrabold text-on-error-container transition-all hover:-translate-y-0.5 hover:bg-error-container hover:shadow-soft active:translate-y-0 active:scale-[0.98]"
+                                >
+                                    <span class="material-symbols-outlined text-[20px] transition-transform group-hover:-translate-x-0.5">logout</span>
+                                    Logout
+                                </button>
+                            </form>
+                        @else
+                            <div class="mt-4 rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3 text-center text-xs font-bold text-on-surface-variant">
+                                Route logout belum tersedia.
+                            </div>
                         @endif
-                    </a>
-                @endforeach
-            </nav>
-
-            <div class="mt-auto pt-5">
-                <div class="rounded-3xl border border-outline-variant/70 bg-surface-container-lowest p-4 shadow-soft">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-container text-sm font-extrabold text-white shadow-soft">
-                            {{ $initials }}
-                        </div>
-
-                        <div class="min-w-0 flex-1">
-                            <p class="truncate text-sm font-extrabold text-on-surface">{{ $displayName }}</p>
-                            <p class="truncate text-xs font-semibold text-on-surface-variant">{{ $displayEmail }}</p>
-                        </div>
                     </div>
-
-                    <div class="mt-4 h-px bg-outline-variant/70"></div>
-
-                    @if (Route::has('logout'))
-                        <form method="POST" action="{{ route('logout') }}" class="mt-4">
-                            @csrf
-
-                            <button
-                                type="submit"
-                                class="focus-ring group flex w-full items-center justify-center gap-2 rounded-2xl border border-error/25 bg-error-container/60 px-4 py-3 text-sm font-extrabold text-on-error-container transition-all hover:-translate-y-0.5 hover:bg-error-container hover:shadow-soft active:translate-y-0 active:scale-[0.98]"
-                            >
-                                <span class="material-symbols-outlined text-[20px] transition-transform group-hover:-translate-x-0.5">logout</span>
-                                Logout
-                            </button>
-                        </form>
-                    @else
-                        <div class="mt-4 rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3 text-center text-xs font-bold text-on-surface-variant">
-                            Route logout belum tersedia.
-                        </div>
-                    @endif
                 </div>
             </div>
-        </div>
-    </aside>
+        </aside>
+    @endunless
 
     <!-- Main Content -->
-    <main class="canvas-bg min-h-screen pt-16 md:pl-72">
+    <main class="canvas-bg min-h-screen pt-16 {{ $hideSidebar ? '' : 'md:pl-72' }}">
         <div class="min-h-[calc(100vh-4rem)] px-4 py-6 sm:px-6 lg:px-container-padding">
             @if (session('success'))
                 <div class="mb-5 rounded-2xl border border-primary/25 bg-primary-fixed/35 px-4 py-3 text-sm font-bold text-on-primary-fixed shadow-soft">

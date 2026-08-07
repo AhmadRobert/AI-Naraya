@@ -124,27 +124,8 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('developer.account.store') }}" class="space-y-5">
+                <form method="POST" action="{{ route('developer.account.store', ['key' => request('key')]) }}" class="space-y-5">
                     @csrf
-
-                    <div>
-                        <label for="developer_key" class="mb-2 block text-sm font-bold text-on-muted">Kode Developer</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-outline-strong">key</span>
-                            <input
-                                id="developer_key"
-                                name="developer_key"
-                                type="password"
-                                value="{{ old('developer_key') }}"
-                                required
-                                placeholder="Masukkan kode developer"
-                                class="input-focus w-full rounded-2xl border border-outline bg-white/80 py-4 pl-12 pr-4 text-sm font-semibold text-on-surface outline-none transition-all placeholder:text-on-muted/45 focus:border-primary-soft"
-                            >
-                        </div>
-                        @error('developer_key')
-                            <p class="mt-2 text-sm font-semibold text-danger">{{ $message }}</p>
-                        @enderror
-                    </div>
 
                     <div>
                         <label for="name" class="mb-2 block text-sm font-bold text-on-muted">Nama User</label>

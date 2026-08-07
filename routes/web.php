@@ -18,7 +18,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return redirect('/login');
+    if (auth()->check()) {
+        return redirect()->route('gabung');
+    }
+    return redirect()->route('login');
 });
 
 Route::view('/beli', 'beli')->name('beli');
@@ -29,11 +32,13 @@ Route::view('/beli', 'beli')->name('beli');
 |--------------------------------------------------------------------------
 */
 
-Route::get('/buat-akun', [DeveloperAccountController::class, 'create'])
-    ->name('developer.account.form');
+Route::middleware('developer.key')->group(function () {
+    Route::get('/buat-akun', [DeveloperAccountController::class, 'create'])
+        ->name('developer.account.form');
 
-Route::post('/buat-akun', [DeveloperAccountController::class, 'store'])
-    ->name('developer.account.store');
+    Route::post('/buat-akun', [DeveloperAccountController::class, 'store'])
+        ->name('developer.account.store');
+});
 
 /*
 |--------------------------------------------------------------------------
