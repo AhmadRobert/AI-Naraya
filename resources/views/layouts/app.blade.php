@@ -309,15 +309,19 @@
                 @if (auth()->check())
                     <div class="hidden h-8 w-px bg-outline-variant sm:block"></div>
 
-                    <div class="flex items-center gap-3 rounded-full border border-outline-variant/70 bg-surface-container-lowest py-1.5 pl-2 pr-3 shadow-soft">
-                        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-container text-xs font-extrabold text-white shadow-soft">
+                    <a
+                        href="{{ route('profile.show') }}"
+                        class="focus-ring group flex items-center gap-3 rounded-full border border-outline-variant/70 bg-surface-container-lowest py-1.5 pl-2 pr-3 shadow-soft transition hover:border-primary/40 hover:bg-surface-container-high"
+                        title="Pengaturan Profil"
+                    >
+                        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-container text-xs font-extrabold text-white shadow-soft transition-transform group-hover:scale-105">
                             {{ $initials }}
                         </div>
                         <div class="hidden leading-tight lg:block">
-                            <p class="max-w-[140px] truncate text-sm font-extrabold text-on-surface">{{ $displayName }}</p>
+                            <p class="max-w-[140px] truncate text-sm font-extrabold text-on-surface transition-colors group-hover:text-primary">{{ $displayName }}</p>
                             <p class="max-w-[140px] truncate text-[11px] font-semibold text-on-surface-variant">{{ $displayEmail }}</p>
                         </div>
-                    </div>
+                    </a>
 
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
@@ -347,17 +351,37 @@
         <!-- Sidebar -->
         <aside
             id="sidebar"
-            class="fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] w-72 -translate-x-full border-r border-outline-variant/60 bg-surface-container-low/95 p-4 shadow-premium backdrop-blur-xl transition-transform duration-300 md:z-40 md:translate-x-0 md:shadow-none"
+            class="fixed left-0 top-16 z-50 flex h-[calc(100vh-4rem)] w-72 -translate-x-full flex-col border-r border-outline-variant/60 bg-surface-container-low/95 p-3 shadow-premium backdrop-blur-xl transition-all duration-300 ease-in-out md:z-40 md:translate-x-0 md:shadow-none"
             aria-label="Workspace navigation"
         >
-            <div class="flex h-full flex-col">
-                <div class="mb-5 rounded-3xl border border-outline-variant/60 bg-surface-container-lowest p-4 shadow-soft">
-                    <p class="text-label-sm uppercase tracking-[0.18em] text-on-surface-variant">Workspace</p>
-                    <h2 class="mt-1 text-lg font-extrabold text-on-surface">Dashboard Editor</h2>
-                    <p class="mt-1 text-sm leading-5 text-on-surface-variant">Pilih tools sesuai kebutuhan generate gambar kamu.</p>
+            <div class="flex h-full flex-col overflow-hidden">
+                <!-- Workspace Card Header with Embedded Desktop Toggle Button -->
+                <div class="sidebar-header mb-4 flex shrink-0 items-center justify-between gap-2 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-3 shadow-soft transition-all">
+                    <div class="sidebar-header-info flex items-center gap-3 min-w-0">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary-container/20 text-primary shadow-sm">
+                            <span class="material-symbols-outlined text-[20px]">space_dashboard</span>
+                        </span>
+                        <div class="sidebar-text min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant/70">Workspace</p>
+                            <h2 class="truncate text-xs font-extrabold text-on-surface">Dashboard Editor</h2>
+                        </div>
+                    </div>
+
+                    <button
+                        id="desktopSidebarToggle"
+                        type="button"
+                        class="focus-ring hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-outline-variant/60 bg-surface-container-low text-on-surface-variant shadow-soft transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary md:flex"
+                        title="Sembunyikan Sidebar"
+                        aria-label="Toggle Sidebar"
+                    >
+                        <span class="expanded-icon material-symbols-outlined text-[20px]">first_page</span>
+                        <span class="collapsed-default-icon material-symbols-outlined text-[20px]">space_dashboard</span>
+                        <span class="collapsed-hover-icon material-symbols-outlined text-[20px]">last_page</span>
+                    </button>
                 </div>
 
-                <nav class="flex flex-col gap-2">
+                <!-- Flat Navigation List -->
+                <nav class="flex-1 overflow-y-auto space-y-1.5 pr-1 scrollbar-thin">
                     @foreach ($navigationItems as $item)
                         @php
                             $isActive = request()->is($item['pattern']);
@@ -365,57 +389,61 @@
 
                         <a
                             href="{{ $item['href'] }}"
-                            class="focus-ring group flex items-center gap-3 rounded-2xl px-3 py-3 transition-all duration-200 {{ $isActive ? 'nav-link-active font-bold' : 'nav-link-inactive text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface' }}"
+                            class="focus-ring group relative flex items-center gap-3 rounded-2xl px-2.5 py-2.5 transition-all duration-200 {{ $isActive ? 'nav-link-active font-bold' : 'nav-link-inactive text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface' }}"
                             aria-current="{{ $isActive ? 'page' : 'false' }}"
+                            title="{{ $item['label'] }} - {{ $item['description'] }}"
                         >
-                            <span class="nav-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-surface-container-lowest text-on-surface-variant shadow-soft transition-all">
-                                <span class="material-symbols-outlined">{{ $item['icon'] }}</span>
+                            <span class="nav-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-container-lowest text-on-surface-variant shadow-soft transition-all group-hover:scale-105">
+                                <span class="material-symbols-outlined text-[20px]">{{ $item['icon'] }}</span>
                             </span>
 
-                            <span class="min-w-0">
-                                <span class="block truncate text-sm font-bold">{{ $item['label'] }}</span>
-                                <span class="block truncate text-xs font-medium opacity-70">{{ $item['description'] }}</span>
+                            <span class="sidebar-text min-w-0 flex-1">
+                                <span class="block truncate text-xs font-bold">{{ $item['label'] }}</span>
+                                <span class="block truncate text-[11px] font-medium opacity-70">{{ $item['description'] }}</span>
                             </span>
 
                             @if ($isActive)
-                                <span class="ml-auto h-2 w-2 rounded-full bg-primary"></span>
+                                <span class="sidebar-text ml-auto h-2 w-2 shrink-0 rounded-full bg-primary shadow-glow"></span>
                             @endif
                         </a>
                     @endforeach
                 </nav>
 
-                <div class="mt-auto pt-5">
-                    <div class="rounded-3xl border border-outline-variant/70 bg-surface-container-lowest p-4 shadow-soft">
-                        <div class="flex items-center gap-3">
-                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-container text-sm font-extrabold text-white shadow-soft">
-                                {{ $initials }}
-                            </div>
+                <!-- Footer User Account Button -->
+                <div class="mt-auto shrink-0 pt-3">
+                    <div class="sidebar-footer-card rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-2 shadow-soft transition-all">
+                        <div class="flex items-center justify-between gap-1.5">
+                            <a
+                                href="{{ route('profile.show') }}"
+                                class="group flex flex-1 items-center gap-2.5 min-w-0 rounded-xl p-1.5 transition-all hover:bg-surface-container-high"
+                                title="Ke Profil Saya"
+                            >
+                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary via-primary-container to-primary-fixed text-xs font-extrabold text-white shadow-soft transition-transform group-hover:scale-105">
+                                    {{ $initials }}
+                                </div>
 
-                            <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-extrabold text-on-surface">{{ $displayName }}</p>
-                                <p class="truncate text-xs font-semibold text-on-surface-variant">{{ $displayEmail }}</p>
-                            </div>
+                                <div class="sidebar-text min-w-0 flex-1 leading-tight">
+                                    <p class="truncate text-xs font-extrabold text-on-surface transition-colors group-hover:text-primary">{{ $displayName }}</p>
+                                    <p class="mt-0.5 truncate text-[10px] font-semibold text-on-surface-variant/80 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[12px] text-primary">manage_accounts</span>
+                                        Pengaturan Akun
+                                    </p>
+                                </div>
+                            </a>
+
+                            @if (Route::has('logout'))
+                                <form method="POST" action="{{ route('logout') }}" class="sidebar-text shrink-0">
+                                    @csrf
+                                    <button
+                                        type="submit"
+                                        class="focus-ring flex h-9 w-9 items-center justify-center rounded-xl border border-error/25 bg-error-container/40 text-on-error-container transition-all hover:bg-error-container hover:shadow-soft active:scale-95"
+                                        title="Logout Akun"
+                                        aria-label="Logout"
+                                    >
+                                        <span class="material-symbols-outlined text-[18px]">logout</span>                                    </button>
+                                </form>
+                            @endif
                         </div>
-
-                        <div class="mt-4 h-px bg-outline-variant/70"></div>
-
-                        @if (Route::has('logout'))
-                            <form method="POST" action="{{ route('logout') }}" class="mt-4">
-                                @csrf
-
-                                <button
-                                    type="submit"
-                                    class="focus-ring group flex w-full items-center justify-center gap-2 rounded-2xl border border-error/25 bg-error-container/60 px-4 py-3 text-sm font-extrabold text-on-error-container transition-all hover:-translate-y-0.5 hover:bg-error-container hover:shadow-soft active:translate-y-0 active:scale-[0.98]"
-                                >
-                                    <span class="material-symbols-outlined text-[20px] transition-transform group-hover:-translate-x-0.5">logout</span>
-                                    Logout
-                                </button>
-                            </form>
-                        @else
-                            <div class="mt-4 rounded-2xl border border-outline-variant/70 bg-surface-container-low px-4 py-3 text-center text-xs font-bold text-on-surface-variant">
-                                Route logout belum tersedia.
-                            </div>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -423,7 +451,7 @@
     @endunless
 
     <!-- Main Content -->
-    <main class="canvas-bg min-h-screen pt-16 {{ $hideSidebar ? '' : 'md:pl-72' }}">
+    <main id="mainContent" class="canvas-bg min-h-screen pt-16 transition-all duration-300 {{ $hideSidebar ? '' : 'md:pl-72' }}">
         <div class="min-h-[calc(100vh-4rem)] px-4 py-6 sm:px-6 lg:px-container-padding">
             @if (session('success'))
                 <div class="mb-5 rounded-2xl border border-primary/25 bg-primary-fixed/35 px-4 py-3 text-sm font-bold text-on-primary-fixed shadow-soft">
@@ -445,50 +473,144 @@
         document.addEventListener('DOMContentLoaded', () => {
             const body = document.body;
             const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
             const overlay = document.getElementById('mobileSidebarOverlay');
             const openButton = document.getElementById('openSidebarButton');
+            const desktopToggleBtn = document.getElementById('desktopSidebarToggle');
+            const desktopToggleIcon = document.getElementById('desktopSidebarToggleIcon');
 
-            if (!sidebar || !overlay || !openButton) return;
+            // --- Mobile Sidebar Logic ---
+            if (sidebar && overlay && openButton) {
+                const openSidebar = () => {
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                    body.classList.add('sidebar-open');
+                    openButton.setAttribute('aria-expanded', 'true');
+                };
 
-            const openSidebar = () => {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-                body.classList.add('sidebar-open');
-                openButton.setAttribute('aria-expanded', 'true');
-            };
-
-            const closeSidebar = () => {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-                body.classList.remove('sidebar-open');
-                openButton.setAttribute('aria-expanded', 'false');
-            };
-
-            openButton.addEventListener('click', () => {
-                if (sidebar.classList.contains('-translate-x-full')) {
-                    openSidebar();
-                } else {
-                    closeSidebar();
-                }
-            });
-
-            overlay.addEventListener('click', closeSidebar);
-
-            window.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape') {
-                    closeSidebar();
-                }
-            });
-
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768) {
+                const closeSidebar = () => {
+                    sidebar.classList.add('-translate-x-full');
                     overlay.classList.add('hidden');
                     body.classList.remove('sidebar-open');
                     openButton.setAttribute('aria-expanded', 'false');
+                };
+
+                openButton.addEventListener('click', () => {
+                    if (sidebar.classList.contains('-translate-x-full')) {
+                        openSidebar();
+                    } else {
+                        closeSidebar();
+                    }
+                });
+
+                overlay.addEventListener('click', closeSidebar);
+
+                window.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        closeSidebar();
+                    }
+                });
+
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth >= 768) {
+                        overlay.classList.add('hidden');
+                        body.classList.remove('sidebar-open');
+                        openButton.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+
+            // --- Desktop Collapsible Mini Sidebar Logic ---
+            if (sidebar && mainContent && desktopToggleBtn) {
+                const isCollapsedStored = localStorage.getItem('naraya_sidebar_collapsed') === 'true';
+
+                const setCollapsedState = (isCollapsed) => {
+                    if (isCollapsed) {
+                        sidebar.classList.remove('w-72');
+                        sidebar.classList.add('w-20', 'sidebar-collapsed');
+                        mainContent.classList.remove('md:pl-72');
+                        mainContent.classList.add('md:pl-20');
+                        if (desktopToggleBtn) desktopToggleBtn.title = 'Tampilkan Sidebar';
+                        localStorage.setItem('naraya_sidebar_collapsed', 'true');
+                    } else {
+                        sidebar.classList.remove('w-20', 'sidebar-collapsed');
+                        sidebar.classList.add('w-72');
+                        mainContent.classList.remove('md:pl-20');
+                        mainContent.classList.add('md:pl-72');
+                        if (desktopToggleBtn) desktopToggleBtn.title = 'Sembunyikan Sidebar';
+                        localStorage.setItem('naraya_sidebar_collapsed', 'false');
+                    }
+                };
+
+                // Initialize state from localStorage
+                if (window.innerWidth >= 768 && isCollapsedStored) {
+                    setCollapsedState(true);
                 }
-            });
+
+                desktopToggleBtn.addEventListener('click', () => {
+                    const currentlyCollapsed = sidebar.classList.contains('w-20');
+                    setCollapsedState(!currentlyCollapsed);
+                });
+            }
         });
     </script>
+
+    <style>
+        /* Default: Expanded mode shows expanded-icon */
+        #desktopSidebarToggle .collapsed-default-icon,
+        #desktopSidebarToggle .collapsed-hover-icon {
+            display: none;
+        }
+
+        /* Mini collapsed sidebar state */
+        .sidebar-collapsed .sidebar-text,
+        .sidebar-collapsed .sidebar-header-info {
+            display: none !important;
+        }
+        .sidebar-collapsed .sidebar-header {
+            padding: 0.5rem !important;
+            justify-content: center !important;
+            border-color: transparent !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+        .sidebar-collapsed #desktopSidebarToggle {
+            width: 2.75rem !important;
+            height: 2.75rem !important;
+            border-radius: 1rem !important;
+        }
+
+        /* Collapsed mode: Normal state shows space_dashboard */
+        .sidebar-collapsed #desktopSidebarToggle .expanded-icon {
+            display: none !important;
+        }
+        .sidebar-collapsed #desktopSidebarToggle .collapsed-default-icon {
+            display: inline-block !important;
+        }
+        /* Collapsed mode: Hover state swaps space_dashboard with last_page (expand) icon */
+        .sidebar-collapsed #desktopSidebarToggle:hover .collapsed-default-icon {
+            display: none !important;
+        }
+        .sidebar-collapsed #desktopSidebarToggle:hover .collapsed-hover-icon {
+            display: inline-block !important;
+        }
+
+        .sidebar-collapsed .sidebar-footer-card {
+            padding: 0.25rem !important;
+            border-color: transparent !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+        .sidebar-collapsed .sidebar-footer-card > div {
+            justify-content: center !important;
+        }
+        .sidebar-collapsed .nav-link-active,
+        .sidebar-collapsed .nav-link-inactive {
+            justify-content: center !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+    </style>
 
     @stack('scripts')
 </body>
