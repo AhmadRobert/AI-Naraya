@@ -60,7 +60,7 @@ class GabungController extends Controller
             }
 
             // 4. Load JSON Workflow
-            $workflow = json_decode(file_get_contents(storage_path('app/Product-Artist.json')), true);
+            $workflow = json_decode(file_get_contents(storage_path('app/Image-Generation.json')), true);
 
             // Setup Rasio
             $ratioMap = [
@@ -75,23 +75,23 @@ class GabungController extends Controller
             $targetHeight = $ratioMap[$request->ratio]['h'] ?? 1024;
 
             // 5. Injeksi Data ke Workflow
-            $workflow["7"]["inputs"]["image"] = $img0; // Gambar 1 (kiri/base)
-            $workflow["8"]["inputs"]["image"] = $img1; // Gambar 2 (kanan/produk)
+            $workflow["1"]["inputs"]["image"] = $img0; // Gambar 1 (kiri/base)
+            $workflow["2"]["inputs"]["image"] = $img1; // Gambar 2 (kanan/produk)
 
             if ($img2) {
-                $workflow["19"]["inputs"]["image"] = $img2; // Gambar 3 (jika ada) atau blank.png
+                $workflow["28"]["inputs"]["image"] = $img2; // Gambar 3 (jika ada) atau blank.png
             } else {
                 // Fallback darurat jika blank.png lokal tidak ada/gagal diupload
-                $workflow["19"]["inputs"]["image"] = $img0;
+                $workflow["28"]["inputs"]["image"] = $img0;
             }
 
-            $workflow["16"]["inputs"]["width"] = $targetWidth;
-            $workflow["16"]["inputs"]["height"] = $targetHeight;
-            $workflow["16"]["inputs"]["batch_size"] = (int) $request->input('count');
-            $workflow["13"]["inputs"]["seed"] = rand(10000000000, 99999999999);
+            $workflow["27"]["inputs"]["width"] = $targetWidth;
+            $workflow["27"]["inputs"]["height"] = $targetHeight;
+            $workflow["27"]["inputs"]["batch_size"] = (int) $request->input('count');
+            $workflow["7"]["inputs"]["noise_seed"] = rand(10000000000, 99999999999);
 
             if ($request->filled('prompt')) {
-                $workflow["11"]["inputs"]["prompt"] = $request->input('prompt');
+                $workflow["13"]["inputs"]["text"] = $request->input('prompt');
             }
 
             // 6. Submit ke AI (Asinkron / Antrean)

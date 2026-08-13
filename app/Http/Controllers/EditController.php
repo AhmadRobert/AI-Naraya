@@ -36,20 +36,20 @@ class EditController extends Controller
             // 4. Tentukan Resolusi dari Rasio
             [$width, $height] = $this->getResolutionFromRatio($request->ratio);
 
-            // 5. Load Workflow (Product-Artist.json dari storage)
-            $workflow = json_decode(file_get_contents(storage_path('app/Product-Artist.json')), true);
+            // 5. Load Workflow (Image-Generation.json dari storage)
+            $workflow = json_decode(file_get_contents(storage_path('app/Image-Generation.json')), true);
 
             // 6. Injeksi Data ke Workflow
-            $workflow['7']['inputs']['image'] = $mainImageName; // Image 1 (Base)
-            $workflow['8']['inputs']['image'] = $transparentImageName; // Image 2
-            $workflow['19']['inputs']['image'] = $transparentImageName; // Image 3 (Logo)
+            $workflow['1']['inputs']['image'] = $mainImageName; // Image 1 (Base)
+            $workflow['2']['inputs']['image'] = $transparentImageName; // Image 2
+            $workflow['28']['inputs']['image'] = $transparentImageName; // Image 3 (Logo)
 
-            $workflow['11']['inputs']['prompt'] = $request->prompt ?? ''; // Positive Prompt
-            $workflow['13']['inputs']['seed'] = rand(10000000000, 99999999999); // Random Seed
+            $workflow['13']['inputs']['text'] = $request->prompt ?? ''; // Positive Prompt
+            $workflow['7']['inputs']['noise_seed'] = rand(10000000000, 99999999999); // Random Seed
 
-            $workflow['16']['inputs']['width'] = $width; // Empty Latent Image Width
-            $workflow['16']['inputs']['height'] = $height; // Empty Latent Image Height
-            $workflow['16']['inputs']['batch_size'] = (int) $request->count; // Generate sekaligus banyak
+            $workflow['27']['inputs']['width'] = $width; // Empty Latent Image Width
+            $workflow['27']['inputs']['height'] = $height; // Empty Latent Image Height
+            $workflow['27']['inputs']['batch_size'] = (int) $request->count; // Generate sekaligus banyak
 
             // 7. Submit ke AI (Cukup 1 kali Request karena sudah pakai batch_size)
             $response = Http::withHeaders([
