@@ -27,7 +27,7 @@ class GrokImageService
     {
         $this->apiKey = config('services.grok.api_key');
 
-        $this->model = config('services.grok.image_model', 'grok-imagine-image');
+        $this->model = config('services.grok.image_model', 'grok-imagine-image-quality');
 
         $this->textModel = config('services.grok.file_model', 'grok-4.3');
     }
@@ -129,7 +129,14 @@ class GrokImageService
 
         if (count($imageFiles) === 1) {
 
+            // FIX: tambahkan 'type' => 'image_url' supaya konsisten dengan
+            // format resmi di docs.x.ai (POST /v1/images/edits) dan
+            // dengan branch multi-image di bawah - beberapa contoh resmi
+            // memang menunjukkan field ini opsional untuk 1 gambar, tapi
+            // menyertakannya lebih aman & konsisten daripada mengandalkan
+            // perilaku default yang tidak selalu didokumentasikan sama.
             $payload['image'] = [
+                'type' => 'image_url',
                 'url' => $this->toDataUri($imageFiles[0]),
             ];
         } else {
@@ -410,12 +417,6 @@ PROMPT;
             }
 
             $scenes[] = [
-                // FIX: field 'reel' sebelumnya TIDAK PERNAH dibaca di sini
-                // walau sudah diminta di instruksi prompt AI di atas.
-                // Akibatnya ImageService::generateFromStoryboard() yang
-                // memfilter pakai `$scene['reel'] ?? 1` selalu jatuh ke
-                // default 1, sehingga PDF berisi banyak reel/ide tidak
-                // pernah bisa difilter per reel dengan benar.
                 'reel' => (int) ($item['reel'] ?? 1),
                 'scene' => (int) ($item['scene'] ?? $i),
                 'visual' => (string) ($item['visual'] ?? ''),

@@ -77,9 +77,12 @@ Route::middleware('auth')->group(function () {
     |------------------------------------------------------------------
     | Views
     |------------------------------------------------------------------
+    | FIX: /edit sebelumnya pakai view('edit') huruf kecil, padahal file
+    | aslinya Edit.blade.php (huruf besar E) - akan gagal "View not
+    | found" di server Linux (case-sensitive). Disamakan jadi 'Edit'.
     */
     Route::view('/gabung', 'gabung')->name('gabung');
-    Route::view('/edit', 'edit')->name('edit');
+    Route::view('/edit', 'Edit')->name('edit');
     Route::get('/artist', [ArtistController::class, 'index'])->name('artist');
     Route::view('/carousel', 'carousel')->name('carousel');
 
