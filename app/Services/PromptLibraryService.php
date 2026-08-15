@@ -74,6 +74,14 @@ class PromptLibraryService
         ];
     }
 
+    /**
+     * BARU: tambah 'Gabungkan Foto' & 'Edit Foto' - kategori khusus untuk
+     * fitur yang terhubung ke ComfyUI. Prompt gambar butuh instruksi jauh
+     * lebih detail & eksplisit dibanding prompt caption biasa, karena
+     * ComfyUI gampang salah tafsir instruksi yang ambigu (contoh: "gabungkan
+     * 2 karakter jadi 1 frame" bisa disalahartikan jadi "gabungkan jadi 1
+     * wujud" alih-alih "tampilkan berdampingan").
+     */
     public function categories(): array
     {
         return [
@@ -82,6 +90,8 @@ class PromptLibraryService
             'Edukasi',
             'Testimoni',
             'Storyboard Video',
+            'Gabungkan Foto',
+            'Edit Foto',
         ];
     }
 
