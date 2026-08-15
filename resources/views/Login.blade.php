@@ -149,14 +149,31 @@
                                 </h1>
 
                                 <p class="mt-5 max-w-lg text-base leading-7 text-on-muted">
-                                    Masuk untuk melanjutkan proses gabungkan foto, edit foto, product artist, dan carousel dalam satu dashboard yang clean dan premium.
+                                    Masuk untuk mengakses seluruh fitur visual & konten AI: Gabungkan Foto, Edit Foto, Produk Artist, Buat Caption, Storyboard, Carousel, dan Prompt Library.
                                 </p>
 
-                                <div class="mt-7 flex flex-wrap gap-3">
-                                    <span class="rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-primary shadow-sm">Gabungkan Foto</span>
-                                    <span class="rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-primary shadow-sm">Edit Foto</span>
-                                    <span class="rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-primary shadow-sm">Product Artist</span>
-                                    <span class="rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-primary shadow-sm">Carousel</span>
+                                <div class="mt-7 flex flex-wrap gap-2.5">
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-primary shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px]">auto_awesome_motion</span> Gabungkan Foto
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-primary shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px]">add_photo_alternate</span> Edit Foto
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-primary shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px]">photo_camera</span> Produk Artist
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-primary shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px]">edit_note</span> Buat Caption
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-primary shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px]">movie_creation</span> Storyboard Video
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-primary shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px]">view_carousel</span> Carousel
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-primary shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px]">collections_bookmark</span> Prompt Library
+                                    </span>
                                 </div>
                             </div>
 
@@ -165,7 +182,7 @@
                                     <div class="mb-8 h-10 w-10 rounded-2xl bg-primary-soft/15 text-primary flex items-center justify-center">
                                         <span class="material-symbols-outlined">image</span>
                                     </div>
-                                    <p class="text-2xl font-extrabold text-on-surface">4+</p>
+                                    <p class="text-2xl font-extrabold text-on-surface">7+</p>
                                     <p class="mt-1 text-xs font-semibold text-on-muted">AI Tools</p>
                                 </div>
 

@@ -2,3 +2,8 @@
 !private/
 !public/
 !.gitignore
+
+!Product-Artist.json
+!Text-Generation.json
+!Carousel-Workflow.json
+!blank.png

@@ -16,12 +16,10 @@ class DeveloperAccountController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'developer_key' => ['required', 'string'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
         ], [
-            'developer_key.required' => 'Kode developer wajib diisi.',
             'name.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
@@ -29,16 +27,6 @@ class DeveloperAccountController extends Controller
             'password.min' => 'Password minimal 6 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak sama.',
         ]);
-
-        $developerKey = env('DEV_CREATE_KEY', 'naraya-dev-2026');
-
-        if (! hash_equals($developerKey, (string) $request->developer_key)) {
-            return back()
-                ->withErrors([
-                    'developer_key' => 'Kode developer salah.',
-                ])
-                ->onlyInput('name', 'email');
-        }
 
         $email = strtolower(trim($request->email));
 
@@ -51,10 +39,19 @@ class DeveloperAccountController extends Controller
             ]
         );
 
-        return back()->with([
-            'success' => 'Akun berhasil dibuat dan sudah bisa dipakai login.',
-            'created_name' => $user->name,
-            'created_email' => $user->email,
+        // Auto-rotate DEVELOPER_ACCESS_KEY in .env so current link becomes one-time use
+        $newKey = 'nrya_dev_' . \Illuminate\Support\Str::random(32);
+        $envPath = base_path('.env');
+        if (\Illuminate\Support\Facades\File::exists($envPath)) {
+            $envContent = \Illuminate\Support\Facades\File::get($envPath);
+            if (preg_match('/^#?\s*DEVELOPER_ACCESS_KEY=.*/m', $envContent)) {
+                $envContent = preg_replace('/^#?\s*DEVELOPER_ACCESS_KEY=.*/m', "DEVELOPER_ACCESS_KEY='{$newKey}'", $envContent);
+                \Illuminate\Support\Facades\File::put($envPath, $envContent);
+            }
+        }
+
+        return redirect()->route('login')->with([
+            'success' => 'Akun ' . $user->name . ' (' . $user->email . ') berhasil dibuat! Link pembuatan akun telah otomatis hangus (Sekali Pakai).',
         ]);
     }
 }

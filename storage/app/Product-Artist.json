@@ -1,0 +1,171 @@
+{
+    "1": {
+        "inputs": {
+            "unet_name": "qwen_image_edit_2509_fp8_e4m3fn.safetensors",
+            "weight_dtype": "default"
+        },
+        "class_type": "UNETLoader",
+        "_meta": {
+            "title": "UNETLoader (Qwen)"
+        }
+    },
+    "2": {
+        "inputs": {
+            "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+            "type": "qwen_image",
+            "device": "default"
+        },
+        "class_type": "CLIPLoader",
+        "_meta": {
+            "title": "CLIPLoader (Qwen)"
+        }
+    },
+    "3": {
+        "inputs": {
+            "vae_name": "qwen_image_vae.safetensors"
+        },
+        "class_type": "VAELoader",
+        "_meta": {
+            "title": "VAELoader (Qwen)"
+        }
+    },
+    "4": {
+        "inputs": {
+            "lora_name": "Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors",
+            "strength_model": 1,
+            "model": ["1", 0]
+        },
+        "class_type": "LoraLoaderModelOnly",
+        "_meta": {
+            "title": "Lightning LoRA"
+        }
+    },
+    "5": {
+        "inputs": {
+            "shift": 3,
+            "model": ["4", 0]
+        },
+        "class_type": "ModelSamplingAuraFlow",
+        "_meta": {
+            "title": "ModelSamplingAuraFlow"
+        }
+    },
+    "6": {
+        "inputs": {
+            "strength": 1,
+            "pre_cfg": false,
+            "model": ["5", 0]
+        },
+        "class_type": "CFGNorm",
+        "_meta": {
+            "title": "CFGNorm"
+        }
+    },
+    "7": {
+        "inputs": {
+            "image": "9f1a61f9271266e3db1cb15f674a7dbadcac6c4c57c5d5b0f2d32611e4ae3c53.png"
+        },
+        "class_type": "LoadImage",
+        "_meta": {
+            "title": "Image 1 (Base)"
+        }
+    },
+    "8": {
+        "inputs": {
+            "image": "9f1a61f9271266e3db1cb15f674a7dbadcac6c4c57c5d5b0f2d32611e4ae3c53.png"
+        },
+        "class_type": "LoadImage",
+        "_meta": {
+            "title": "Image 2"
+        }
+    },
+    "11": {
+        "inputs": {
+            "prompt": "",
+            "clip": ["2", 0],
+            "vae": ["3", 0],
+            "image1": ["7", 0],
+            "image2": ["8", 0],
+            "image3": ["19", 0]
+        },
+        "class_type": "TextEncodeQwenImageEditPlus",
+        "_meta": {
+            "title": "Positive Prompt (Qwen)"
+        }
+    },
+    "12": {
+        "inputs": {
+            "prompt": "wrong color palette, inconsistent outfit, inconsistent hairstyle, inconsistent facial features, inconsistent accessories, incorrect proportions, altered identity, unrealistic pose, unnatural expression, distorted perspective, mismatched background, incorrect lighting, inconsistent shadows, unrealistic reflections, altered environment, inconsistent scale, incorrect anatomy, unrealistic textures, altered context, inconsistent theme, incorrect composition",
+            "clip": ["2", 0],
+            "vae": ["3", 0],
+            "image1": ["7", 0],
+            "image2": ["8", 0],
+            "image3": ["19", 0]
+        },
+        "class_type": "TextEncodeQwenImageEditPlus",
+        "_meta": {
+            "title": "Negative Prompt (Qwen)"
+        }
+    },
+    "13": {
+        "inputs": {
+            "seed": 90324000686714,
+            "steps": 4,
+            "cfg": 1,
+            "sampler_name": "euler",
+            "scheduler": "simple",
+            "denoise": 1,
+            "model": ["6", 0],
+            "positive": ["11", 0],
+            "negative": ["12", 0],
+            "latent_image": ["16", 0]
+        },
+        "class_type": "KSampler",
+        "_meta": {
+            "title": "KSampler"
+        }
+    },
+    "14": {
+        "inputs": {
+            "samples": ["13", 0],
+            "vae": ["3", 0]
+        },
+        "class_type": "VAEDecode",
+        "_meta": {
+            "title": "VAEDecode"
+        }
+    },
+    "15": {
+        "inputs": {
+            "filename_prefix": "Image",
+            "format": "png",
+            "format.bit_depth": "8-bit",
+            "format.input_color_space": "sRGB",
+            "images": ["14", 0]
+        },
+        "class_type": "SaveImageAdvanced",
+        "_meta": {
+            "title": "SaveImageAdvanced"
+        }
+    },
+    "16": {
+        "inputs": {
+            "width": 1024,
+            "height": 512,
+            "batch_size": 1
+        },
+        "class_type": "EmptyLatentImage",
+        "_meta": {
+            "title": "Empty Latent Image"
+        }
+    },
+    "19": {
+        "inputs": {
+            "image": "9f1a61f9271266e3db1cb15f674a7dbadcac6c4c57c5d5b0f2d32611e4ae3c53.png"
+        },
+        "class_type": "LoadImage",
+        "_meta": {
+            "title": "Image Logo"
+        }
+    }
+}

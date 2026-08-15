@@ -218,6 +218,7 @@
                     <span class="material-symbols-outlined text-[16px]">movie_creation</span>
                     Render Workspace
                 </div>
+                <p id="workspaceSubtitle" class="text-label-sm text-on-surface-variant">Hasil render hanya muncul setelah proses selesai.</p>
             </div>
 
             <div class="flex flex-wrap gap-2">
