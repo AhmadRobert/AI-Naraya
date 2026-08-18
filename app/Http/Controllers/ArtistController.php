@@ -3,33 +3,21 @@
 namespace App\Http\Controllers;
 
 /**
- * FIX MAPPING PENTING: sebelumnya controller ini punya generate() dan
- * checkStatus() versi ComfyUI (async, submit ke /api/prompt lalu polling),
- * dan route POST /artist/generate di web.php sempat mengarah ke sini.
+ * FIX: view() dikembalikan ke 'Artist' (huruf besar A). Perbaikan
+ * sebelumnya mengubah ini jadi 'artist' (huruf kecil) dengan asumsi nama
+ * file blade-nya huruf kecil, tapi berdasarkan struktur project yang
+ * sebenarnya, file blade-nya adalah Artist.blade.php (huruf besar). Di
+ * server Linux (case-sensitive), view('artist') akan gagal - "View not
+ * found" - walau tidak masalah di Windows/Mac saat development lokal.
  *
- * Itu SALAH ARAH - Produk Artist ada di daftar fitur yang harus pakai
- * Grok (bukan Comfy), dan implementasi Grok yang benar SUDAH ADA di
- * ImageGenerationController::generateArtist() (sinkron, hasil langsung
- * dalam satu response, cocok dengan artist.blade.php versi Oltha yang
- * tidak melakukan polling).
- *
- * Method generate()/checkStatus()/uploadToComfyCloud()/getDimensionsFromRatio()
- * versi ComfyUI DIHAPUS dari sini. Controller ini sekarang cuma bertugas
- * menampilkan halaman - proses generate ditangani lewat route terpisah
- * yang mengarah ke ImageGenerationController::generateArtist() (lihat
- * routes/web.php).
- *
- * FIX TAMBAHAN: view() diubah ke huruf kecil 'artist' (sebelumnya 'Artist'
- * huruf besar). Nama file blade yang dipakai adalah artist.blade.php
- * (huruf kecil), dan di server Linux resolusi nama view itu case-sensitive
- * — kalau dibiarkan 'Artist' bisa menyebabkan error "View not found".
- * Ini juga menyamakan konvensi dengan view gabung/edit/carousel yang
- * semuanya huruf kecil.
+ * Proses generate() ditangani lewat route terpisah yang mengarah ke
+ * ImageGenerationController::generateArtist() -> ImageService::generateWithGrok()
+ * (lihat routes/web.php), controller ini cuma bertugas menampilkan halaman.
  */
 class ArtistController extends Controller
 {
     public function index()
     {
-        return view('artist');
+        return view('Artist');
     }
 }

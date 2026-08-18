@@ -21,7 +21,7 @@
                 Sepertinya kamu tersesat. Halaman yang kamu tuju mungkin sudah dihapus, dipindahkan, atau memang tidak pernah ada.
             </p>
 
-            <a href="{{ auth()->check() ? route('gabung') : route('login') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-label-lg hover:brightness-105 active:scale-95 transition-all shadow-md shadow-primary/20">
+            <a href="{{ url('/') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-full font-label-lg hover:brightness-105 active:scale-95 transition-all shadow-md shadow-primary/20">
                 <span class="material-symbols-outlined text-[20px]">home</span>
                 Kembali ke Beranda
             </a>

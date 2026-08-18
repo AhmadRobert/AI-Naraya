@@ -201,9 +201,33 @@
     @stack('styles')
 </head>
 
-<body class="text-on-surface antialiased">
+    <body class="text-on-surface antialiased">
     @php
         $navigationItems = [
+            [
+                'label' => 'Super Dashboard',
+                'href' => url('/super-admin'),
+                'pattern' => 'super-admin',
+                'icon' => 'admin_panel_settings',
+                'description' => 'Global Platform Stats',
+                'role' => 'super_admin'
+            ],
+            [
+                'label' => 'Manajemen User',
+                'href' => url('/super-admin/users'),
+                'pattern' => 'super-admin/users*',
+                'icon' => 'manage_accounts',
+                'description' => 'Kelola Akun Platform',
+                'role' => 'super_admin'
+            ],
+            [
+                'label' => 'Company Dashboard',
+                'href' => url('/admin'),
+                'pattern' => 'admin*',
+                'icon' => 'insights',
+                'description' => 'Usage by User',
+                'role' => 'admin_umkm'
+            ],
             [
                 'label' => 'Gabungkan Foto',
                 'href' => url('/gabung'),
@@ -256,6 +280,22 @@
         ];
 
         $authUser = auth()->user();
+        $role = $authUser?->role ?? 'user';
+
+        // Strict role-based feature separation
+        $navigationItems = array_filter($navigationItems, function($item) use ($role) {
+            $itemRole = $item['role'] ?? 'user'; // If no role specified, it's a 'user' feature
+
+            if ($role === 'super_admin') {
+                return $itemRole === 'super_admin';
+            } elseif ($role === 'admin_umkm') {
+                return $itemRole === 'admin_umkm';
+            } else {
+                // Regular users only see 'user' features
+                return $itemRole === 'user';
+            }
+        });
+
         $displayName = $authUser?->name ?? 'AI-Naraya User';
         $displayEmail = $authUser?->email ?? 'Belum login';
         $nameParts = preg_split('/\s+/', trim($displayName)) ?: [];

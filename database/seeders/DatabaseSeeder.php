@@ -22,13 +22,23 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => Hash::make('password'),
+            'role'=> 'user',
         ]);
 
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('password123'),
+            'role' => 'super_admin',
         ]);
+
+         User::factory()->create([
+            'name' => 'Admin UMKM',
+            'email' => 'umkm@gmail.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin_umkm',
+        ]);
+
 
         $this->call(PromptLibrarySeeder::class);
     }

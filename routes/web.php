@@ -20,6 +20,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (auth()->check()) {
+        $role = auth()->user()->role;
+        if ($role === 'super_admin') {
+            return redirect()->route('admin.super.index');
+        } elseif ($role === 'admin_umkm') {
+            return redirect()->route('admin.company.index');
+        }
         return redirect()->route('gabung');
     }
     return redirect()->route('login');
@@ -62,7 +68,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\CheckCompanyActive::class])->group(function () {
 
     /*
     |------------------------------------------------------------------
@@ -75,101 +81,144 @@ Route::middleware('auth')->group(function () {
 
     /*
     |------------------------------------------------------------------
-    | Views
+    | AI Feature Routes (Only for 'user' role)
     |------------------------------------------------------------------
     */
-    Route::view('/gabung', 'gabung')->name('gabung');
-    Route::view('/edit', 'edit')->name('edit');
-    Route::get('/artist', [ArtistController::class, 'index'])->name('artist');
-    Route::view('/carousel', 'carousel')->name('carousel');
+    Route::middleware([\App\Http\Middleware\UserMiddleware::class])->group(function () {
+        /*
+        |------------------------------------------------------------------
+        | Views
+        |------------------------------------------------------------------
+        | FIX: /edit sebelumnya pakai view('edit') huruf kecil, padahal file
+        | aslinya Edit.blade.php (huruf besar E) - akan gagal "View not
+        | found" di server Linux (case-sensitive). Disamakan jadi 'Edit'.
+        */
+        Route::view('/gabung', 'gabung')->name('gabung');
+        Route::view('/edit', 'Edit')->name('edit');
+        Route::get('/artist', [ArtistController::class, 'index'])->name('artist');
+        Route::view('/carousel', 'carousel')->name('carousel');
 
-    Route::redirect('/korosel', '/carousel');
-    Route::redirect('/Carousel', '/carousel');
+        Route::redirect('/korosel', '/carousel');
+        Route::redirect('/Carousel', '/carousel');
+
+        /*
+        |------------------------------------------------------------------
+        | Gabungkan Foto -> ComfyUI (implementasi Candra)
+        |------------------------------------------------------------------
+        */
+        Route::post('/gabung/generate', [GabungController::class, 'generate'])
+            ->name('gabung.generate');
+
+        Route::get('/gabung/status/{ids}', [GabungController::class, 'checkStatus'])
+            ->name('gabung.status');
+
+        /*
+        |------------------------------------------------------------------
+        | Edit Foto -> ComfyUI (implementasi Candra)
+        |------------------------------------------------------------------
+        */
+        Route::post('/edit/generate', [EditController::class, 'generate'])
+            ->name('edit.generate');
+
+        Route::get('/edit/status/{ids}', [EditController::class, 'checkStatus'])
+            ->name('edit.status');
+
+        /*
+        |------------------------------------------------------------------
+        | Produk Artist -> Grok (implementasi Oltha)
+        |------------------------------------------------------------------
+        */
+        Route::post('/artist/generate', [ImageGenerationController::class, 'generateArtist'])
+            ->name('artist.generate');
+
+        /*
+        |------------------------------------------------------------------
+        | Carousel -> Grok (implementasi Oltha)
+        |------------------------------------------------------------------
+        */
+        Route::post('/carousel/render', [ImageGenerationController::class, 'renderCarousel'])
+            ->name('carousel.render');
+
+        Route::get('/download-image', [ImageGenerationController::class, 'downloadImage'])
+            ->name('download.image');
+
+        /*
+        |------------------------------------------------------------------
+        | Caption -> ComfyUI (implementasi Candra)
+        |------------------------------------------------------------------
+        */
+        Route::view('/caption', 'Caption')->name('caption');
+
+        Route::post('/caption/generate', [CaptionController::class, 'generate'])
+            ->name('caption.generate');
+
+        Route::get('/caption/status/{promptId}', [CaptionController::class, 'checkStatus'])
+            ->name('caption.status');
+
+        /*
+        |------------------------------------------------------------------
+        | Storyboard -> Grok (implementasi Oltha)
+        |------------------------------------------------------------------
+        */
+        Route::view('/storyboard', 'Storyboard')->name('storyboard');
+
+        Route::post('/storyboard/generate', [StoryboardController::class, 'generate'])
+            ->name('storyboard.generate');
+
+        /*
+        |------------------------------------------------------------------
+        | Prompt Library
+        |------------------------------------------------------------------
+        */
+        Route::get('/prompts', [PromptController::class, 'page'])
+            ->name('prompts.page');
+
+        Route::get('/api/prompts', [PromptController::class, 'index'])
+            ->name('prompts.index');
+
+        Route::post('/api/prompts', [PromptController::class, 'store'])
+            ->name('prompts.store');
+
+        Route::put('/api/prompts/{id}', [PromptController::class, 'update'])
+            ->name('prompts.update');
+
+        Route::delete('/api/prompts/{id}', [PromptController::class, 'destroy'])
+            ->name('prompts.destroy');
+
+        Route::post('/api/prompts/{id}/use', [PromptController::class, 'markUsed'])
+            ->name('prompts.use');
+    });
 
     /*
     |------------------------------------------------------------------
-    | Gabungkan Foto -> ComfyUI (implementasi Candra)
+    | Admin Dashboards
     |------------------------------------------------------------------
     */
-    Route::post('/gabung/generate', [GabungController::class, 'generate'])
-        ->name('gabung.generate');
+    Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])->group(function () {
+        Route::get('/super-admin', [\App\Http\Controllers\SuperAdminReportController::class, 'index'])
+            ->name('admin.super.index');
+        
+        // Company Management Routes
+        Route::post('/super-admin/companies', [\App\Http\Controllers\SuperAdminReportController::class, 'storeCompany'])
+            ->name('admin.super.companies.store');
+        Route::put('/super-admin/companies/{company}/markup', [\App\Http\Controllers\SuperAdminReportController::class, 'updateMarkup'])
+            ->name('admin.super.companies.markup');
+        Route::patch('/super-admin/companies/{company}/toggle-status', [\App\Http\Controllers\SuperAdminReportController::class, 'toggleStatus'])
+            ->name('admin.super.companies.toggle');
 
-    Route::get('/gabung/status/{ids}', [GabungController::class, 'checkStatus'])
-        ->name('gabung.status');
+        // User Management Routes
+        Route::get('/super-admin/users', [\App\Http\Controllers\UserManagementController::class, 'index'])
+            ->name('admin.super.users.index');
+        Route::post('/super-admin/users', [\App\Http\Controllers\UserManagementController::class, 'store'])
+            ->name('admin.super.users.store');
+        Route::put('/super-admin/users/{user}', [\App\Http\Controllers\UserManagementController::class, 'update'])
+            ->name('admin.super.users.update');
+        Route::delete('/super-admin/users/{user}', [\App\Http\Controllers\UserManagementController::class, 'destroy'])
+            ->name('admin.super.users.destroy');
+    });
 
-    /*
-    |------------------------------------------------------------------
-    | Edit Foto -> ComfyUI (implementasi Candra)
-    |------------------------------------------------------------------
-    */
-    Route::post('/edit/generate', [EditController::class, 'generate'])
-        ->name('edit.generate');
-
-    Route::get('/edit/status/{ids}', [EditController::class, 'checkStatus'])
-        ->name('edit.status');
-
-    /*
-    |------------------------------------------------------------------
-    | Produk Artist -> Grok (implementasi Oltha)
-    |------------------------------------------------------------------
-    */
-    Route::post('/artist/generate', [ImageGenerationController::class, 'generateArtist'])
-        ->name('artist.generate');
-
-    /*
-    |------------------------------------------------------------------
-    | Carousel -> Grok (implementasi Oltha)
-    |------------------------------------------------------------------
-    */
-    Route::post('/carousel/render', [ImageGenerationController::class, 'renderCarousel'])
-        ->name('carousel.render');
-
-    Route::get('/download-image', [ImageGenerationController::class, 'downloadImage'])
-        ->name('download.image');
-
-    /*
-    |------------------------------------------------------------------
-    | Caption -> ComfyUI (implementasi Candra)
-    |------------------------------------------------------------------
-    */
-    Route::view('/caption', 'Caption')->name('caption');
-
-    Route::post('/caption/generate', [CaptionController::class, 'generate'])
-        ->name('caption.generate');
-
-    Route::get('/caption/status/{promptId}', [CaptionController::class, 'checkStatus'])
-        ->name('caption.status');
-
-    /*
-    |------------------------------------------------------------------
-    | Storyboard -> Grok (implementasi Oltha)
-    |------------------------------------------------------------------
-    */
-    Route::view('/storyboard', 'Storyboard')->name('storyboard');
-
-    Route::post('/storyboard/generate', [StoryboardController::class, 'generate'])
-        ->name('storyboard.generate');
-
-    /*
-    |------------------------------------------------------------------
-    | Prompt Library
-    |------------------------------------------------------------------
-    */
-    Route::get('/prompts', [PromptController::class, 'page'])
-        ->name('prompts.page');
-
-    Route::get('/api/prompts', [PromptController::class, 'index'])
-        ->name('prompts.index');
-
-    Route::post('/api/prompts', [PromptController::class, 'store'])
-        ->name('prompts.store');
-
-    Route::put('/api/prompts/{id}', [PromptController::class, 'update'])
-        ->name('prompts.update');
-
-    Route::delete('/api/prompts/{id}', [PromptController::class, 'destroy'])
-        ->name('prompts.destroy');
-
-    Route::post('/api/prompts/{id}/use', [PromptController::class, 'markUsed'])
-        ->name('prompts.use');
+    Route::middleware([\App\Http\Middleware\AdminUmkmMiddleware::class])->group(function () {
+        Route::get('/admin', [\App\Http\Controllers\CompanyReportController::class, 'index'])
+            ->name('admin.company.index');
+    });
 });

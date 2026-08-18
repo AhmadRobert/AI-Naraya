@@ -10,7 +10,13 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect('/gabung');
+            $role = Auth::user()->role;
+            if ($role === 'super_admin') {
+                return redirect()->route('admin.super.index');
+            } elseif ($role === 'admin_umkm') {
+                return redirect()->route('admin.company.index');
+            }
+            return redirect()->route('gabung');
         }
 
         return view('Login');
@@ -28,7 +34,13 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            return redirect('/gabung');
+            $role = Auth::user()->role;
+            if ($role === 'super_admin') {
+                return redirect()->route('admin.super.index');
+            } elseif ($role === 'admin_umkm') {
+                return redirect()->route('admin.company.index');
+            }
+            return redirect()->route('gabung');
         }
 
         return back()
